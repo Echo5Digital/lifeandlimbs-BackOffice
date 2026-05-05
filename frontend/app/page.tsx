@@ -268,118 +268,163 @@ function StepPersonal({ data, onChange, onNext }: {
   );
 }
 
-// ─── Step 2: Documents Upload ─────────────────────────────────────────────────
+// ─── Step 2: Documents Upload (step-by-step) ─────────────────────────────────
+const ALL_DOCS: { key: keyof DocumentData; icon: string; en: string; ml: string; accept: string; required?: boolean }[] = [
+  { key: "patientPhoto", icon: "📷", en: "Patient Photo",   ml: "നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം", accept: "image/*", required: true },
+  { key: "housePhoto",   icon: "🏠", en: "House Photo",     ml: "മുന്നിൽ നിന്ന് നിങ്ങളുടെ വീടിന്റെ മുഴുവൻ ചിത്രം",            accept: "image/*" },
+  { key: "rationCard",   icon: "🪪", en: "Ration Card",     ml: "നിങ്ങളുടെ റേഷൻ കാർഡിന്റെ ചിത്രം",                            accept: "image/*,application/pdf" },
+  { key: "aadhaarCard",  icon: "📋", en: "Aadhaar Card",    ml: "നിങ്ങളുടെ ആധാർ കാർഡിന്റെ ചിത്രം",                            accept: "image/*,application/pdf" },
+  { key: "medicalDocs",  icon: "🏥", en: "Medical Records", ml: "മെഡിക്കൽ ഡോക്യുമെന്റേഷന്റെ ചിത്രം",                          accept: "image/*,application/pdf" },
+];
+
+interface FilePreview { name: string; originalSize: number; compressedSize: number | null; }
+
 function StepDocuments({ data, onChange, onNext, onBack }: {
   data: DocumentData;
   onChange: (key: keyof DocumentData, val: File) => void;
   onNext: () => void;
   onBack: () => void;
 }) {
+  const [docStep, setDocStep]             = useState(0); // 0–4
   const [compressEnabled, setCompressEnabled] = useState(true);
-  const [compressing, setCompressing]         = useState(false);
-  const [photoPreview, setPhotoPreview]       = useState<PhotoPreview | null>(null);
+  const [compressing, setCompressing]     = useState(false);
+  const [previews, setPreviews]           = useState<Partial<Record<keyof DocumentData, FilePreview>>>({});
+
+  const current = ALL_DOCS[docStep];
 
   const compress = async (file: File): Promise<File> => {
     const imageCompression = (await import("browser-image-compression")).default;
-    return imageCompression(file, {
-      maxSizeMB: 1, maxWidthOrHeight: 1280,
-      useWebWorker: true, fileType: "image/jpeg",
-    });
+    return imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true, fileType: "image/jpeg" });
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fmt = (b: number) => b < 1048576 ? (b / 1024).toFixed(0) + " KB" : (b / 1048576).toFixed(1) + " MB";
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const originalSize = file.size;
-    const needsCompression = compressEnabled && file.size > 1048576; // only compress if > 1MB
+    const needsCompression = compressEnabled && file.type.startsWith("image/") && file.size > 1048576;
     if (needsCompression) {
       setCompressing(true);
       try {
         const compressed = await compress(file);
-        setPhotoPreview({ name: file.name, originalSize, compressedSize: compressed.size });
-        onChange("patientPhoto", compressed as File);
-      } catch { onChange("patientPhoto", file); }
-      finally { setCompressing(false); }
+        onChange(current.key, compressed as File);
+        setPreviews(p => ({ ...p, [current.key]: { name: file.name, originalSize, compressedSize: compressed.size } }));
+      } catch {
+        onChange(current.key, file);
+        setPreviews(p => ({ ...p, [current.key]: { name: file.name, originalSize, compressedSize: null } }));
+      } finally { setCompressing(false); }
     } else {
-      setPhotoPreview({ name: file.name, originalSize, compressedSize: null });
-      onChange("patientPhoto", file);
+      onChange(current.key, file);
+      setPreviews(p => ({ ...p, [current.key]: { name: file.name, originalSize, compressedSize: null } }));
     }
   };
 
-  const handleDocChange = async (key: keyof DocumentData, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (compressEnabled && file.type.startsWith("image/") && file.size > 1048576) { // only compress if > 1MB
-      try { onChange(key, await compress(file) as File); }
-      catch { onChange(key, file); }
-    } else { onChange(key, file); }
+  const goNextDoc = () => {
+    if (docStep < ALL_DOCS.length - 1) setDocStep(s => s + 1);
+    else onNext();
+  };
+  const goPrevDoc = () => {
+    if (docStep > 0) setDocStep(s => s - 1);
+    else onBack();
   };
 
-  const fmt = (b: number) => b < 1048576 ? (b / 1024).toFixed(0) + " KB" : (b / 1048576).toFixed(1) + " MB";
-  const pct = photoPreview?.compressedSize
-    ? Math.round((1 - photoPreview.compressedSize / photoPreview.originalSize) * 100)
+  const preview = previews[current.key];
+  const uploaded = data[current.key];
+  const pct = preview?.compressedSize
+    ? Math.round((1 - preview.compressedSize / preview.originalSize) * 100)
     : null;
 
-  const DOCS: { key: keyof DocumentData; icon: string; en: string; ml: string }[] = [
-    { key: "housePhoto",  icon: "🏠", en: "House Photo",     ml: "മുന്നിൽ നിന്ന് നിങ്ങളുടെ വീടിന്റെ മുഴുവൻ ചിത്രം" },
-    { key: "rationCard",  icon: "🪪", en: "Ration Card",     ml: "നിങ്ങളുടെ റേഷൻ കാർഡിന്റെ ചിത്രം" },
-    { key: "aadhaarCard", icon: "📋", en: "Aadhaar Card",    ml: "നിങ്ങളുടെ ആധാർ കാർഡിന്റെ ചിത്രം" },
-    { key: "medicalDocs", icon: "🏥", en: "Medical Records", ml: "മെഡിക്കൽ ഡോക്യുമെന്റേഷന്റെ ചിത്രം" },
-  ];
+  const uploadedCount = ALL_DOCS.filter(d => data[d.key]).length;
 
   return (
     <div style={styles.body}>
-      <div style={styles.sectionLabel}>Patient Photo · രോഗിയുടെ ഫോട്ടോ</div>
 
-      <label style={styles.uploadZone}>
-        <input type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
-        <div style={styles.uploadIcon}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A6B3A" strokeWidth="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21,15 16,10 5,21"/>
-          </svg>
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 500, color: "#374151", marginBottom: 4 }}>
-          {compressing ? "Compressing... · ചെറുതാക്കുന്നു..." : "Tap to upload full body photo"}
-        </div>
-        <div style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.6 }}>
-          Show injured leg/arm clearly
-        </div>
-        <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.6, marginTop: 2 }} lang="ml">
-          നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം
-        </div>
-        <span style={styles.sizePill}>Max 5 MB · പരമാവധി 5 MB</span>
+      {/* Mini progress dots */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 18 }}>
+        {ALL_DOCS.map((d, i) => {
+          const isDone    = !!data[d.key];          // uploaded — solid green
+          const isActive  = i === docStep;           // current — elongated green
+          const isFuture  = !isDone && !isActive;    // not yet — gray
+          return (
+            <div key={d.key} style={{
+              width: isActive ? 28 : 8,
+              height: 8,
+              borderRadius: 4,
+              background: isDone ? "#1A6B3A" : isActive ? "#4ADE80" : "#E5E7EB",
+              border: isDone ? "none" : isActive ? "2px solid #1A6B3A" : "none",
+              transition: "all 0.3s",
+              flexShrink: 0,
+            }} />
+          );
+        })}
+      </div>
+
+      {/* Counter */}
+      <div style={{ textAlign: "center", fontSize: 11, color: "#9CA3AF", marginBottom: 14 }}>
+        {docStep + 1} of {ALL_DOCS.length} · {uploadedCount} uploaded
+        {!current.required && <span style={{ marginLeft: 6, background: "#F3F4F6", color: "#9CA3AF", padding: "1px 7px", borderRadius: 10, fontSize: 10 }}>optional · ഐച്ഛികം</span>}
+      </div>
+
+      {/* Upload zone */}
+      <label style={{
+        ...styles.uploadZone,
+        borderColor: uploaded ? "#A7D7B5" : "#D1D5DB",
+        background: uploaded ? "#F8FDF9" : "#FAFAFA",
+      }}>
+        <input type="file" accept={current.accept} style={{ display: "none" }} onChange={handleFile} />
+
+        {uploaded ? (
+          // Uploaded state
+          <>
+            <div style={{ ...styles.uploadIcon, background: "#F0FAF4" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A6B3A" strokeWidth="2.5">
+                <polyline points="20,6 9,17 4,12"/>
+              </svg>
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#1A6B3A", marginBottom: 2 }}>
+              {current.en} ✓
+            </div>
+            <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 6 }} lang="ml">
+              {current.ml}
+            </div>
+            {preview && (
+              <div style={{ fontSize: 12, color: "#6B7280" }}>
+                {preview.name} · {fmt(preview.originalSize)}
+                {preview.compressedSize && pct && (
+                  <> → <strong style={{ color: "#1A6B3A" }}>{fmt(preview.compressedSize)}</strong> · {pct}% saved</>
+                )}
+              </div>
+            )}
+            <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6 }}>Tap to change · മാറ്റുക</div>
+            {preview?.compressedSize && pct && (
+              <div style={{ ...styles.compressBar, marginTop: 8, maxWidth: 200, margin: "8px auto 0" }}>
+                <div style={{ ...styles.compressFill, width: `${100 - pct}%` }} />
+              </div>
+            )}
+          </>
+        ) : (
+          // Empty state
+          <>
+            <div style={styles.uploadIcon}>
+              <span style={{ fontSize: 22 }}>{current.icon}</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+              {compressing ? "Compressing... · ചെറുതാക്കുന്നു..." : current.en}
+            </div>
+            <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }} lang="ml">
+              {current.ml}
+            </div>
+            <span style={styles.sizePill}>Max 5 MB · പരമാവധി 5 MB</span>
+          </>
+        )}
       </label>
 
-      {photoPreview && (
-        <div style={styles.previewRow}>
-          <div style={styles.previewThumb}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A6B3A" strokeWidth="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21,15 16,10 5,21"/>
-            </svg>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>{photoPreview.name}</div>
-            <div style={{ fontSize: 11, color: "#6B7280" }}>
-              {fmt(photoPreview.originalSize)}
-              {photoPreview.compressedSize && (
-                <> → <strong style={{ color: "#1A6B3A" }}>{fmt(photoPreview.compressedSize)}</strong> · {pct}% saved</>
-              )}
-            </div>
-            {pct && <div style={styles.compressBar}><div style={{ ...styles.compressFill, width: `${100 - pct}%` }} /></div>}
-          </div>
-        </div>
-      )}
-
+      {/* Auto-compress toggle */}
       <div style={styles.compressToggleRow}>
         <div>
           <span style={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>Auto-compress images</span>
-          <span style={{ fontSize: 11, color: "#9CA3AF", display: "block", marginTop: 2 }}>
-            ചിത്രങ്ങൾ സ്വയം ചെറുതാക്കുക
-          </span>
+          <span style={{ fontSize: 11, color: "#9CA3AF", display: "block", marginTop: 2 }}>ചിത്രങ്ങൾ സ്വയം ചെറുതാക്കുക</span>
         </div>
         <div
           style={{ ...styles.toggle, background: compressEnabled ? "#1A6B3A" : "#D1D5DB" }}
@@ -390,44 +435,29 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
       </div>
 
       {!compressEnabled && (
-        <div style={styles.warningBox}>
-          ⚠ Large files may take longer to upload · വലിയ ഫയലുകൾ സമയമെടുക്കും
-        </div>
+        <div style={styles.warningBox}>⚠ Large files may take longer to upload · വലിയ ഫയലുകൾ സമയമെടുക്കും</div>
       )}
 
-      <div style={{ marginTop: 18 }}>
-        <div style={styles.sectionLabel}>Supporting Documents · <span lang="ml">സഹായ രേഖകൾ</span> <span style={{ fontWeight: 400, textTransform: "none", fontSize: 10 }}>(optional · ഐച്ഛികം)</span></div>
-        <div style={styles.docGrid}>
-          {DOCS.map(doc => (
-            <label key={doc.key} style={{ ...styles.docCard, ...(data[doc.key] ? styles.docCardDone : {}) }}>
-              <input type="file" accept="image/*,application/pdf"
-                style={{ display: "none" }} onChange={e => handleDocChange(doc.key, e)} />
-              <div style={styles.docTop}>
-                <div style={styles.docIconWrap}>{doc.icon}</div>
-                {data[doc.key] && (
-                  <div style={styles.docCheck}>
-                    <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5">
-                      <polyline points="2,6 5,9 10,3"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{doc.en}</div>
-              <div style={{ fontSize: 11, color: "#6B7280", marginTop: 3, lineHeight: 1.4 }} lang="ml">{doc.ml}</div>
-            </label>
-          ))}
-        </div>
-      </div>
-
+      {/* Navigation */}
       <div style={{ ...styles.row2, marginTop: 20, gap: 10 }}>
-        <button style={{ ...styles.btnOutline, marginTop: 0 }} onClick={onBack}>← Back</button>
-        <button style={{ ...styles.btnGreen, marginTop: 0, flex: 1 }} onClick={onNext}>
-          Next: Review
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-            <polyline points="9,18 15,12 9,6"/>
-          </svg>
+        <button style={{ ...styles.btnOutline, marginTop: 0 }} onClick={goPrevDoc}>
+          ← {docStep === 0 ? "Back" : "Previous"}
+        </button>
+        <button style={{ ...styles.btnGreen, marginTop: 0, flex: 1 }} onClick={goNextDoc}>
+          {docStep === ALL_DOCS.length - 1 ? (
+            <>Review & Submit <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg></>
+          ) : (
+            <>Next: {ALL_DOCS[docStep + 1].en} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg></>
+          )}
         </button>
       </div>
+
+      {/* Skip note for optional docs */}
+      {!current.required && (
+        <p style={{ textAlign: "center", fontSize: 11, color: "#9CA3AF", marginTop: 8 }}>
+          You can skip this · <span lang="ml">ഇത് ഒഴിവാക്കാം</span>
+        </p>
+      )}
     </div>
   );
 }
