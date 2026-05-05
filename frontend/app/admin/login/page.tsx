@@ -17,11 +17,14 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      await axios.post(
+      const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/login`,
         { email, password },
         { withCredentials: true }
       );
+      if (res.data.token) {
+        localStorage.setItem('adminToken', res.data.token);
+      }
       router.push('/admin/dashboard');
     } catch (err: unknown) {
       const message =

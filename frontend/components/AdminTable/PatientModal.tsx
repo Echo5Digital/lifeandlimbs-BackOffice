@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Patient, PatientStatus } from '@/lib/types';
+
+function authHeaders() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 import { formatIST } from '@/lib/utils';
 
 interface Props {
@@ -49,7 +54,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
       await axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/patients/${patient._id}/status`,
         { status },
-        { withCredentials: true }
+        { headers: authHeaders(), withCredentials: true }
       );
       onStatusUpdated(patient._id, status);
       setSaveMsg('Status updated successfully.');

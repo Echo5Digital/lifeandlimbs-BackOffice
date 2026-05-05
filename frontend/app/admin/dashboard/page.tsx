@@ -9,6 +9,11 @@ import PatientModal from '@/components/AdminTable/PatientModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+function authHeaders() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // Key summary cards shown at the top of the dashboard
 const statCards: { key: PatientStatus; label: string; color: string; bg: string; border: string }[] = [
   { key: 'new',                  label: 'New',              color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
@@ -45,6 +50,7 @@ export default function AdminDashboard() {
           page,
           limit: 20,
         },
+        headers: authHeaders(),
         withCredentials: true,
       });
       const { data, stats: s, districts: d, pages } = res.data;
@@ -74,7 +80,8 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await axios.post(`${API}/api/admin/logout`, {}, { withCredentials: true });
+    localStorage.removeItem('adminToken');
+    await axios.post(`${API}/api/admin/logout`, {}, { headers: authHeaders(), withCredentials: true });
     router.push('/admin/login');
   };
 
