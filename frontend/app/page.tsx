@@ -289,7 +289,7 @@ function StepPersonal({ data, onChange, onNext }: {
 // ─── Step 2: Documents Upload (step-by-step) ─────────────────────────────────
 const ALL_DOCS: { key: keyof DocumentData; icon: string; en: string; ml: string; accept: string; required?: boolean }[] = [
   { key: "patientPhoto", icon: "📷", en: "Patient Photo",   ml: "നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം", accept: "image/*", required: true },
-  { key: "housePhoto",   icon: "🏠", en: "House Photo",     ml: "മുന്നിൽ നിന്ന് നിങ്ങളുടെ വീടിന്റെ മുഴുവൻ ചിത്രം",            accept: "image/*" },
+  { key: "housePhoto",   icon: "🏠", en: "House Photo",     ml: "നിങ്ങളുടെ വീടിന്റെ മുന്നിൽ നിന്ന് ഉള്ള മുഴുവൻ ചിത്രം",      accept: "image/*" },
   { key: "rationCard",   icon: "🪪", en: "Ration Card",     ml: "നിങ്ങളുടെ റേഷൻ കാർഡിന്റെ ചിത്രം",                            accept: "image/*,application/pdf" },
   { key: "aadhaarCard",  icon: "📋", en: "Aadhaar Card",    ml: "നിങ്ങളുടെ ആധാർ കാർഡിന്റെ ചിത്രം",                            accept: "image/*,application/pdf" },
   { key: "medicalDocs",  icon: "🏥", en: "Medical Records", ml: "മെഡിക്കൽ ഡോക്യുമെന്റേഷന്റെ ചിത്രം",                          accept: "image/*,application/pdf" },
