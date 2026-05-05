@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #374151;
+  --green-primary: #1A6B3A;
+  --green-light: #F0FAF4;
+  --amber: #FEF9EC;
+  --border: #E5E7EB;
+}
+
+body {
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  background: #FFFFFF;
+  color: #374151;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* All inputs minimum 44px height */
+input, select, textarea {
+  min-height: 44px;
+  font-size: 16px !important;
+}
+
+/* All buttons minimum 48px tap target */
+button {
+  min-height: 48px;
+}
+
+/* Malayalam text rendering */
+[lang="ml"] {
+  font-family: 'Noto Sans Malayalam', 'Manjari', 'Arial Unicode MS', sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
