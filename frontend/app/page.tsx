@@ -291,7 +291,8 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
     const file = e.target.files?.[0];
     if (!file) return;
     const originalSize = file.size;
-    if (compressEnabled) {
+    const needsCompression = compressEnabled && file.size > 1048576; // only compress if > 1MB
+    if (needsCompression) {
       setCompressing(true);
       try {
         const compressed = await compress(file);
@@ -308,13 +309,13 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
   const handleDocChange = async (key: keyof DocumentData, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (compressEnabled && file.type.startsWith("image/")) {
+    if (compressEnabled && file.type.startsWith("image/") && file.size > 1048576) { // only compress if > 1MB
       try { onChange(key, await compress(file) as File); }
       catch { onChange(key, file); }
     } else { onChange(key, file); }
   };
 
-  const fmt = (b: number) => (b / 1048576).toFixed(1) + " MB";
+  const fmt = (b: number) => b < 1048576 ? (b / 1024).toFixed(0) + " KB" : (b / 1048576).toFixed(1) + " MB";
   const pct = photoPreview?.compressedSize
     ? Math.round((1 - photoPreview.compressedSize / photoPreview.originalSize) * 100)
     : null;
