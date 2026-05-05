@@ -9,17 +9,33 @@ interface Props {
 }
 
 const statusBadge: Record<PatientStatus, string> = {
-  new:      'bg-[#EFF6FF] text-[#1D4ED8]',
-  review:   'bg-[#FEF9EC] text-[#92660A]',
-  approved: 'bg-[#F0FAF4] text-[#1A6B3A]',
-  rejected: 'bg-[#FEF2F2] text-[#991B1B]',
+  new:                   'bg-[#EFF6FF] text-[#1D4ED8]',
+  ready_for_evaluation:  'bg-[#F5F3FF] text-[#6D28D9]',
+  scheduling:            'bg-[#FEF9EC] text-[#92660A]',
+  evaluated_pending:     'bg-[#FFF7ED] text-[#C2410C]',
+  evaluated:             'bg-[#ECFDF5] text-[#065F46]',
+  rejected:              'bg-[#FEF2F2] text-[#991B1B]',
+  approved:              'bg-[#F0FAF4] text-[#1A6B3A]',
+  completed:             'bg-[#D1FAE5] text-[#064E3B]',
+  follow_up:             'bg-[#FAF5FF] text-[#7E22CE]',
+  repairs:               'bg-[#FFF3E0] text-[#B45309]',
+  on_hold:               'bg-[#F3F4F6] text-[#4B5563]',
+  incomplete:            'bg-[#FEF2F2] text-[#B45309]',
 };
 
-const statusLabel: Record<PatientStatus, string> = {
-  new:      'New',
-  review:   'Under Review',
-  approved: 'Approved',
-  rejected: 'Rejected',
+export const statusLabel: Record<PatientStatus, string> = {
+  new:                   'New Registration',
+  ready_for_evaluation:  'Ready For Evaluation',
+  scheduling:            'Scheduling',
+  evaluated_pending:     'Evaluated-Pending Approval',
+  evaluated:             'Evaluated',
+  rejected:              'Rejected',
+  approved:              'Approved',
+  completed:             'Completed',
+  follow_up:             'Follow-up',
+  repairs:               'Repairs',
+  on_hold:               'On Hold',
+  incomplete:            'Application Incomplete',
 };
 
 export default function AdminTable({ patients, onView }: Props) {
@@ -53,7 +69,7 @@ export default function AdminTable({ patients, onView }: Props) {
               <tr key={p._id} className={`border-b border-[#E5E7EB] hover:bg-gray-50 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}>
                 <td className="px-4 py-3">
                   <div className="font-semibold text-[#374151]">{p.fullName}</div>
-                  <div className="text-xs text-[#9CA3AF]">{p.district} · {p.age}y</div>
+                  <div className="text-xs text-[#9CA3AF]">{p.age}y · {p.gender}</div>
                 </td>
                 <td className="px-4 py-3 text-[#374151]">{p.phone}</td>
                 <td className="px-4 py-3">
@@ -61,7 +77,7 @@ export default function AdminTable({ patients, onView }: Props) {
                   <div className="text-xs text-[#9CA3AF]">{time}</div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusBadge[p.status]}`}>
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${statusBadge[p.status]}`}>
                     {statusLabel[p.status]}
                   </span>
                 </td>

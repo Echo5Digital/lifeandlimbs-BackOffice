@@ -9,18 +9,19 @@ import PatientModal from '@/components/AdminTable/PatientModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-const statCards = [
-  { key: 'new',      label: 'New',          ml: 'പുതിയ',           color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
-  { key: 'review',   label: 'Under Review',  ml: 'പരിശോധനയിൽ',     color: 'text-[#854F0B]', bg: 'bg-[#FEF9EC]', border: 'border-[#FDE68A]' },
-  { key: 'approved', label: 'Approved',       ml: 'അനുമതി ലഭിച്ചു', color: 'text-[#1A6B3A]', bg: 'bg-[#F0FAF4]', border: 'border-[#86EFAC]' },
-  { key: 'rejected', label: 'Rejected',       ml: 'നിരസിച്ചു',       color: 'text-[#A32D2D]', bg: 'bg-[#FEF2F2]', border: 'border-[#FECACA]' },
-] as const;
+// Key summary cards shown at the top of the dashboard
+const statCards: { key: PatientStatus; label: string; color: string; bg: string; border: string }[] = [
+  { key: 'new',                  label: 'New',              color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
+  { key: 'ready_for_evaluation', label: 'Ready to Evaluate',color: 'text-[#6D28D9]', bg: 'bg-[#F5F3FF]', border: 'border-[#C4B5FD]' },
+  { key: 'approved',             label: 'Approved',         color: 'text-[#1A6B3A]', bg: 'bg-[#F0FAF4]', border: 'border-[#86EFAC]' },
+  { key: 'completed',            label: 'Completed',        color: 'text-[#064E3B]', bg: 'bg-[#D1FAE5]', border: 'border-[#6EE7B7]' },
+];
 
 export default function AdminDashboard() {
   const router = useRouter();
 
   const [patients,  setPatients]  = useState<Patient[]>([]);
-  const [stats,     setStats]     = useState<AdminStats>({ new: 0, review: 0, approved: 0, rejected: 0 });
+  const [stats,     setStats]     = useState<AdminStats>({});
   const [districts, setDistricts] = useState<string[]>([]);
   const [loading,   setLoading]   = useState(true);
 
@@ -107,10 +108,9 @@ export default function AdminDashboard() {
           {statCards.map((card) => (
             <div key={card.key} className={`${card.bg} border ${card.border} rounded-[14px] p-4`}>
               <div className={`text-2xl font-bold ${card.color}`}>
-                {stats[card.key]}
+                {stats[card.key] ?? 0}
               </div>
               <div className="text-sm font-medium text-[#374151] mt-1">{card.label}</div>
-              <div className="text-xs text-[#9CA3AF]" lang="ml">{card.ml}</div>
             </div>
           ))}
         </div>
@@ -123,10 +123,18 @@ export default function AdminDashboard() {
             className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]"
           >
             <option value="all">All Status</option>
-            <option value="new">New</option>
-            <option value="review">Under Review</option>
+            <option value="new">New Registration</option>
+            <option value="ready_for_evaluation">Ready For Evaluation</option>
+            <option value="scheduling">Scheduling</option>
+            <option value="evaluated_pending">Evaluated-Pending Approval</option>
+            <option value="evaluated">Evaluated</option>
             <option value="approved">Approved</option>
+            <option value="completed">Completed</option>
+            <option value="follow_up">Follow-up</option>
+            <option value="repairs">Repairs</option>
+            <option value="on_hold">On Hold</option>
             <option value="rejected">Rejected</option>
+            <option value="incomplete">Application Incomplete</option>
           </select>
 
           <select

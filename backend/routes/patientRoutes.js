@@ -16,8 +16,6 @@ const registerValidation = [
   body('age').isInt({ min: 1, max: 120 }).withMessage('Valid age is required / സാധുവായ പ്രായം ആവശ്യമാണ്'),
   body('gender').isIn(['male', 'female', 'other']).withMessage('Gender is required / ലിംഗം ആവശ്യമാണ്'),
   body('phone').notEmpty().withMessage('Phone number is required / ഫോൺ നമ്പർ ആവശ്യമാണ്'),
-  body('district').notEmpty().withMessage('District is required / ജില്ല ആവശ്യമാണ്'),
-  body('injuryDesc').notEmpty().withMessage('Injury description is required / പരിക്കിന്റെ വിവരണം ആവശ്യമാണ്'),
 ];
 
 // Multer fields for file uploads

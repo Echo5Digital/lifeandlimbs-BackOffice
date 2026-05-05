@@ -74,13 +74,12 @@ const getPatients = async (req, res) => {
     // Get distinct districts for dropdown
     const districts = await Patient.distinct('district');
 
-    // Stats
-    const [newCount, reviewCount, approvedCount, rejectedCount] = await Promise.all([
-      Patient.countDocuments({ status: 'new' }),
-      Patient.countDocuments({ status: 'review' }),
-      Patient.countDocuments({ status: 'approved' }),
-      Patient.countDocuments({ status: 'rejected' }),
+    // Stats — count every status in one aggregation pass
+    const statusAgg = await Patient.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
+    const stats = {};
+    statusAgg.forEach(({ _id, count }) => { stats[_id] = count; });
 
     res.json({
       success: true,
@@ -90,12 +89,7 @@ const getPatients = async (req, res) => {
       limit:   Number(limit),
       pages:   Math.ceil(total / Number(limit)),
       districts,
-      stats: {
-        new:      newCount,
-        review:   reviewCount,
-        approved: approvedCount,
-        rejected: rejectedCount,
-      },
+      stats,
     });
   } catch (err) {
     console.error('getPatients error:', err);
@@ -121,7 +115,11 @@ const getPatientById = async (req, res) => {
 const updatePatientStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const allowed = ['new', 'review', 'approved', 'rejected'];
+    const allowed = [
+      'new', 'ready_for_evaluation', 'scheduling', 'evaluated_pending',
+      'evaluated', 'rejected', 'approved', 'completed',
+      'follow_up', 'repairs', 'on_hold', 'incomplete',
+    ];
     if (!allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status value.' });
     }

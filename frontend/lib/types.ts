@@ -1,22 +1,18 @@
 export type Gender = 'male' | 'female' | 'other';
-export type PatientStatus = 'new' | 'review' | 'approved' | 'rejected';
 
-export interface FormData {
-  // Step 1
-  fullName: string;
-  age: string;
-  gender: Gender | '';
-  phone: string;
-  email: string;
-  district: string;
-  injuryDesc: string;
-  // Step 2
-  patientPhoto: File | null;
-  housePhoto: File | null;
-  rationCard: File | null;
-  aadhaarCard: File | null;
-  medicalDocs: File | null;
-}
+export type PatientStatus =
+  | 'new'
+  | 'ready_for_evaluation'
+  | 'scheduling'
+  | 'evaluated_pending'
+  | 'evaluated'
+  | 'rejected'
+  | 'approved'
+  | 'completed'
+  | 'follow_up'
+  | 'repairs'
+  | 'on_hold'
+  | 'incomplete';
 
 export interface Patient {
   _id: string;
@@ -41,9 +37,5 @@ export interface Patient {
   docCount?: number;
 }
 
-export interface AdminStats {
-  new: number;
-  review: number;
-  approved: number;
-  rejected: number;
-}
+// Stats are dynamic — any PatientStatus key may appear
+export type AdminStats = Partial<Record<PatientStatus, number>>;

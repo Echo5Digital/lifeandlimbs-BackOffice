@@ -167,19 +167,16 @@ const styles: Record<string, CSSProperties> = {
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface PersonalData {
   fullName: string; age: string; gender: string;
-  phone: string; email: string; district: string; injuryDesc: string;
+  phone: string; email: string;
 }
 interface DocumentData {
   patientPhoto: File | null; housePhoto: File | null;
   rationCard: File | null; aadhaarCard: File | null; medicalDocs: File | null;
 }
-interface PhotoPreview {
-  name: string; originalSize: number; compressedSize: number | null;
-}
 
 // ─── Field Wrapper ────────────────────────────────────────────────────────────
-function Field({ label, labelMl, optional, children }: {
-  label: string; labelMl: string; optional?: boolean; children: React.ReactNode;
+function Field({ label, labelMl, optional, error, children }: {
+  label: string; labelMl: string; optional?: boolean; error?: string; children: React.ReactNode;
 }) {
   return (
     <div style={{ marginBottom: 14 }}>
@@ -195,6 +192,11 @@ function Field({ label, labelMl, optional, children }: {
         {labelMl}
       </span>
       {children}
+      {error && (
+        <span style={{ display: "block", fontSize: 11, color: "#DC2626", marginTop: 5 }}>
+          ⚠ {error}
+        </span>
+      )}
     </div>
   );
 }
@@ -205,23 +207,52 @@ function StepPersonal({ data, onChange, onNext }: {
   onChange: (key: keyof PersonalData, val: string) => void;
   onNext: () => void;
 }) {
+  const [errors, setErrors] = useState<Partial<Record<keyof PersonalData, string>>>({});
+
+  const err = (field: string): CSSProperties =>
+    (errors as Record<string, string>)[field]
+      ? { borderColor: "#EF4444", background: "#FEF2F2" }
+      : {};
+
+  const handle = (key: keyof PersonalData, val: string) => {
+    onChange(key, val);
+    if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
+  };
+
+  const handleNext = () => {
+    const e: Partial<Record<keyof PersonalData, string>> = {};
+    if (!data.fullName.trim())
+      e.fullName = "Full name is required · പേര് നൽകണം";
+    if (!data.age.trim() || isNaN(Number(data.age)) || Number(data.age) <= 0)
+      e.age = "Valid age is required · ശരിയായ പ്രായം നൽകണം";
+    if (!data.gender)
+      e.gender = "Please select gender · ലിംഗം തിരഞ്ഞെടുക്കുക";
+    if (!data.phone.trim())
+      e.phone = "Phone number is required · ഫോൺ നമ്പർ നൽകണം";
+    else if (!/^\d{10}$/.test(data.phone.replace(/\s/g, "")))
+      e.phone = "Enter a valid 10-digit number · 10 അക്ക നമ്പർ നൽകുക";
+    if (Object.keys(e).length > 0) { setErrors(e); return; }
+    setErrors({});
+    onNext();
+  };
+
   return (
     <div style={styles.body}>
       <div style={styles.sectionLabel}>Personal Details · വ്യക്തിഗത വിവരങ്ങൾ</div>
 
-      <Field label="Full Name" labelMl="പൂർണ്ണ നാമം">
-        <input style={styles.input} type="text"
+      <Field label="Full Name" labelMl="പൂർണ്ണ നാമം" error={errors.fullName}>
+        <input style={{ ...styles.input, ...err("fullName") }} type="text"
           placeholder="Enter your full name · പേര് നൽകുക"
-          value={data.fullName} onChange={e => onChange("fullName", e.target.value)} />
+          value={data.fullName} onChange={e => handle("fullName", e.target.value)} />
       </Field>
 
       <div style={styles.row2}>
-        <Field label="Age" labelMl="പ്രായം">
-          <input style={styles.input} type="number" placeholder="Years · വർഷം"
-            value={data.age} onChange={e => onChange("age", e.target.value)} />
+        <Field label="Age" labelMl="പ്രായം" error={errors.age}>
+          <input style={{ ...styles.input, ...err("age") }} type="number" placeholder="Years · വർഷം"
+            value={data.age} onChange={e => handle("age", e.target.value)} />
         </Field>
-        <Field label="Gender" labelMl="ലിംഗം">
-          <select style={styles.input} value={data.gender} onChange={e => onChange("gender", e.target.value)}>
+        <Field label="Gender" labelMl="ലിംഗം" error={errors.gender}>
+          <select style={{ ...styles.input, ...err("gender") }} value={data.gender} onChange={e => handle("gender", e.target.value)}>
             <option value="">Select · തിരഞ്ഞെടുക്കുക</option>
             <option value="male">Male · പുരുഷൻ</option>
             <option value="female">Female · സ്ത്രീ</option>
@@ -230,35 +261,22 @@ function StepPersonal({ data, onChange, onNext }: {
         </Field>
       </div>
 
-      <Field label="Phone Number" labelMl="ഫോൺ നമ്പർ">
-        <div style={styles.phoneWrap}>
+      <Field label="Phone Number" labelMl="ഫോൺ നമ്പർ" error={errors.phone}>
+        <div style={{ ...styles.phoneWrap, ...(errors.phone ? { borderColor: "#EF4444" } : {}) }}>
           <span style={styles.phonePrefix}>+91</span>
           <input
-            style={{ ...styles.input, borderLeft: "none", borderRadius: "0 9px 9px 0", flex: 1, width: "auto" }}
+            style={{ ...styles.input, borderLeft: "none", borderRadius: "0 9px 9px 0", flex: 1, width: "auto", ...(errors.phone ? { background: "#FEF2F2" } : {}) }}
             type="tel" placeholder="XXXXX XXXXX"
-            value={data.phone} onChange={e => onChange("phone", e.target.value)} />
+            value={data.phone} onChange={e => handle("phone", e.target.value)} />
         </div>
       </Field>
 
       <Field label="Email" labelMl="ഇ-മെയിൽ (ഐച്ഛികം)" optional>
         <input style={styles.input} type="email" placeholder="email@example.com"
-          value={data.email} onChange={e => onChange("email", e.target.value)} />
+          value={data.email} onChange={e => handle("email", e.target.value)} />
       </Field>
 
-      <Field label="District / Address" labelMl="ജില്ല / വിലാസം">
-        <input style={styles.input} type="text"
-          placeholder="Enter district and address · ജില്ലയും വിലാസവും നൽകുക"
-          value={data.district} onChange={e => onChange("district", e.target.value)} />
-      </Field>
-
-      <Field label="Injury Description" labelMl="പരിക്കിന്റെ വിവരണം">
-        <textarea
-          style={{ ...styles.input, height: 90, padding: "10px 12px", resize: "none" }}
-          placeholder="Describe the injury / amputation · പരിക്ക് വിവരിക്കുക"
-          value={data.injuryDesc} onChange={e => onChange("injuryDesc", e.target.value)} />
-      </Field>
-
-      <button style={styles.btnGreen} onClick={onNext}>
+      <button style={styles.btnGreen} onClick={handleNext}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <polyline points="9,18 15,12 9,6"/>
         </svg>
@@ -289,6 +307,8 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
   const [compressEnabled, setCompressEnabled] = useState(true);
   const [compressing, setCompressing]     = useState(false);
   const [previews, setPreviews]           = useState<Partial<Record<keyof DocumentData, FilePreview>>>({});
+  const [previewUrls, setPreviewUrls]     = useState<Partial<Record<keyof DocumentData, string>>>({});
+  const [showError, setShowError]         = useState(false);
 
   const current = ALL_DOCS[docStep];
 
@@ -302,29 +322,47 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setShowError(false);
     const originalSize = file.size;
-    const needsCompression = compressEnabled && file.type.startsWith("image/") && file.size > 1048576;
+    const isImage = file.type.startsWith("image/");
+    const needsCompression = compressEnabled && isImage && file.size > 1048576;
+
+    let finalFile: File = file;
+    let compressedSize: number | null = null;
+
     if (needsCompression) {
       setCompressing(true);
       try {
         const compressed = await compress(file);
-        onChange(current.key, compressed as File);
-        setPreviews(p => ({ ...p, [current.key]: { name: file.name, originalSize, compressedSize: compressed.size } }));
+        finalFile = compressed as File;
+        compressedSize = compressed.size;
       } catch {
-        onChange(current.key, file);
-        setPreviews(p => ({ ...p, [current.key]: { name: file.name, originalSize, compressedSize: null } }));
-      } finally { setCompressing(false); }
-    } else {
-      onChange(current.key, file);
-      setPreviews(p => ({ ...p, [current.key]: { name: file.name, originalSize, compressedSize: null } }));
+        /* keep original on compression error */
+      } finally {
+        setCompressing(false);
+      }
+    }
+
+    // Capture key NOW (before any awaits already done) to avoid stale closure
+    const key = current.key;
+    onChange(key, finalFile);
+    setPreviews(p => ({ ...p, [key]: { name: file.name, originalSize, compressedSize } }));
+    if (isImage) {
+      setPreviewUrls(p => ({ ...p, [key]: URL.createObjectURL(finalFile) }));
     }
   };
 
   const goNextDoc = () => {
+    if (current.required && !uploaded) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
     if (docStep < ALL_DOCS.length - 1) setDocStep(s => s + 1);
     else onNext();
   };
   const goPrevDoc = () => {
+    setShowError(false);
     if (docStep > 0) setDocStep(s => s - 1);
     else onBack();
   };
@@ -343,9 +381,8 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
       {/* Mini progress dots */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 18 }}>
         {ALL_DOCS.map((d, i) => {
-          const isDone    = !!data[d.key];          // uploaded — solid green
-          const isActive  = i === docStep;           // current — elongated green
-          const isFuture  = !isDone && !isActive;    // not yet — gray
+          const isDone   = !!data[d.key];   // uploaded — solid green
+          const isActive = i === docStep;  // current — elongated green
           return (
             <div key={d.key} style={{
               width: isActive ? 28 : 8,
@@ -369,19 +406,31 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
       {/* Upload zone */}
       <label style={{
         ...styles.uploadZone,
-        borderColor: uploaded ? "#A7D7B5" : "#D1D5DB",
-        background: uploaded ? "#F8FDF9" : "#FAFAFA",
+        borderColor: showError && current.required && !uploaded ? "#EF4444" : uploaded ? "#A7D7B5" : "#D1D5DB",
+        background:  showError && current.required && !uploaded ? "#FEF2F2" : uploaded ? "#F8FDF9" : "#FAFAFA",
       }}>
-        <input type="file" accept={current.accept} style={{ display: "none" }} onChange={handleFile} />
+        <input key={current.key} type="file" accept={current.accept} style={{ display: "none" }} onChange={handleFile} />
 
         {uploaded ? (
           // Uploaded state
           <>
-            <div style={{ ...styles.uploadIcon, background: "#F0FAF4" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A6B3A" strokeWidth="2.5">
-                <polyline points="20,6 9,17 4,12"/>
-              </svg>
-            </div>
+            {previewUrls[current.key] ? (
+              <img
+                src={previewUrls[current.key]}
+                alt={current.en}
+                style={{
+                  width: 72, height: 72, objectFit: "cover",
+                  borderRadius: 10, border: "2px solid #A7D7B5",
+                  margin: "0 auto 10px", display: "block",
+                }}
+              />
+            ) : (
+              <div style={{ ...styles.uploadIcon, background: "#F0FAF4" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A6B3A" strokeWidth="2.5">
+                  <polyline points="20,6 9,17 4,12"/>
+                </svg>
+              </div>
+            )}
             <div style={{ fontSize: 14, fontWeight: 600, color: "#1A6B3A", marginBottom: 2 }}>
               {current.en} ✓
             </div>
@@ -420,6 +469,18 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
         )}
       </label>
 
+      {/* Required-field error */}
+      {showError && current.required && !uploaded && (
+        <div style={{
+          marginBottom: 10, padding: "9px 13px",
+          background: "#FEF2F2", border: "1px solid #FECACA",
+          borderRadius: 9, fontSize: 12, color: "#DC2626",
+        }}>
+          ⚠ This photo is required before you can continue.<br />
+          <span lang="ml" style={{ fontSize: 11, color: "#EF4444" }}>ഈ ഫോട്ടോ നൽകാതെ മുന്നോട്ട് പോകാൻ കഴിയില്ല.</span>
+        </div>
+      )}
+
       {/* Auto-compress toggle */}
       <div style={styles.compressToggleRow}>
         <div>
@@ -441,13 +502,16 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
       {/* Navigation */}
       <div style={{ ...styles.row2, marginTop: 20, gap: 10 }}>
         <button style={{ ...styles.btnOutline, marginTop: 0 }} onClick={goPrevDoc}>
-          ← {docStep === 0 ? "Back" : "Previous"}
+          {docStep === 0
+            ? <>← Back · <span lang="ml">പിന്നോട്ട്</span></>
+            : <>← Previous · <span lang="ml">മുൻ</span></>
+          }
         </button>
         <button style={{ ...styles.btnGreen, marginTop: 0, flex: 1 }} onClick={goNextDoc}>
           {docStep === ALL_DOCS.length - 1 ? (
-            <>Review & Submit <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg></>
+            <>Review & Submit · <span lang="ml">സമർപ്പിക്കുക</span> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg></>
           ) : (
-            <>Next: {ALL_DOCS[docStep + 1].en} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg></>
+            <>Next · <span lang="ml">അടുത്തത്</span> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg></>
           )}
         </button>
       </div>
@@ -478,25 +542,27 @@ function StepReview({ personal, documents, onSubmit, onBack, loading }: {
   const uploaded = DOC_KEYS.filter(k =>  documents[k]);
   const pending  = DOC_KEYS.filter(k => !documents[k]);
 
-  const rows: [string, string, string | null][] = [
-    ["Full Name", personal.fullName  || "—", "പൂർണ്ണ നാമം"],
-    ["Age",       personal.age ? `${personal.age} years` : "—", null],
-    ["Gender",    personal.gender   || "—", null],
-    ["Phone",     personal.phone ? `+91 ${personal.phone}` : "—", null],
-    ["Email",     personal.email    || "Not provided", null],
-    ["District",  personal.district || "—", null],
+  // [English label, Malayalam label, value]
+  const rows: [string, string, string][] = [
+    ["Full Name",    "പൂർണ്ണ നാമം",   personal.fullName || "—"],
+    ["Age",          "പ്രായം",          personal.age ? `${personal.age} years` : "—"],
+    ["Gender",       "ലിംഗം",           personal.gender  || "—"],
+    ["Phone",        "ഫോൺ നമ്പർ",      personal.phone ? `+91 ${personal.phone}` : "—"],
+    ["Email",        "ഇ-മെയിൽ",        personal.email   || "Not provided"],
   ];
 
   return (
     <div style={styles.body}>
       <div style={styles.sectionLabel}>Personal Details · വ്യക്തിഗത വിവരങ്ങൾ</div>
 
-      {rows.map(([label, val, ml]) => (
-        <div key={label} style={styles.reviewRow}>
-          <span style={{ fontSize: 12, color: "#9CA3AF" }}>{label}</span>
+      {rows.map(([labelEn, labelMl, val]) => (
+        <div key={labelEn} style={styles.reviewRow}>
+          <div>
+            <div style={{ fontSize: 12, color: "#9CA3AF" }}>{labelEn}</div>
+            <div style={{ fontSize: 10, color: "#C4C9D4" }} lang="ml">{labelMl}</div>
+          </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 13, fontWeight: val === "Not provided" ? 400 : 500, color: val === "Not provided" ? "#9CA3AF" : "#374151" }}>{val}</div>
-            {ml && <div style={{ fontSize: 11, color: "#9CA3AF" }}>{ml}</div>}
           </div>
         </div>
       ))}
@@ -526,7 +592,7 @@ function StepReview({ personal, documents, onSubmit, onBack, loading }: {
           </>
         )}
       </button>
-      <button style={styles.btnOutline} onClick={onBack}>← Back</button>
+      <button style={styles.btnOutline} onClick={onBack}>← Back · <span lang="ml">പിന്നോട്ട്</span></button>
       <p style={{ fontSize: 11, color: "#9CA3AF", textAlign: "center", marginTop: 10, lineHeight: 1.6 }}>
         By submitting you agree to share your details with Life and Limbs Foundation<br />
         സമർപ്പിക്കുന്നതിലൂടെ നിങ്ങൾ വിവരങ്ങൾ പങ്കിടാൻ സമ്മതിക്കുന്നു
@@ -576,7 +642,7 @@ export default function RegistrationForm() {
   const [error, setError]         = useState("");
 
   const [personal, setPersonal] = useState<PersonalData>({
-    fullName: "", age: "", gender: "", phone: "", email: "", district: "", injuryDesc: "",
+    fullName: "", age: "", gender: "", phone: "", email: "",
   });
   const [documents, setDocuments] = useState<DocumentData>({
     patientPhoto: null, housePhoto: null, rationCard: null, aadhaarCard: null, medicalDocs: null,
@@ -671,7 +737,7 @@ export default function RegistrationForm() {
         {step === 3 && (
           <StepSuccess regId={regId} timestamp={timestamp} onReset={() => {
             setStep(0);
-            setPersonal({ fullName: "", age: "", gender: "", phone: "", email: "", district: "", injuryDesc: "" });
+            setPersonal({ fullName: "", age: "", gender: "", phone: "", email: "" });
             setDocuments({ patientPhoto: null, housePhoto: null, rationCard: null, aadhaarCard: null, medicalDocs: null });
           }} />
         )}

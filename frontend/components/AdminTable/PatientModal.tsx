@@ -12,10 +12,18 @@ interface Props {
 }
 
 const statusOptions: { value: PatientStatus; label: string }[] = [
-  { value: 'new',      label: 'New' },
-  { value: 'review',   label: 'Under Review' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'rejected', label: 'Rejected' },
+  { value: 'new',                   label: 'New Registration' },
+  { value: 'ready_for_evaluation',  label: 'Ready For Evaluation' },
+  { value: 'scheduling',            label: 'Scheduling' },
+  { value: 'evaluated_pending',     label: 'Evaluated-Pending Approval' },
+  { value: 'evaluated',             label: 'Evaluated' },
+  { value: 'approved',              label: 'Approved' },
+  { value: 'completed',             label: 'Completed' },
+  { value: 'follow_up',             label: 'Follow-up' },
+  { value: 'repairs',               label: 'Repairs' },
+  { value: 'on_hold',               label: 'On Hold' },
+  { value: 'rejected',              label: 'Rejected' },
+  { value: 'incomplete',            label: 'Application Incomplete' },
 ];
 
 const docLabels: { key: keyof Patient['documents']; label: string }[] = [
