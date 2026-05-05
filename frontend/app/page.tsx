@@ -320,10 +320,10 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
     : null;
 
   const DOCS: { key: keyof DocumentData; icon: string; en: string; ml: string }[] = [
-    { key: "housePhoto",  icon: "🏠", en: "House Photo",     ml: "വീടിൻ്റെ ചിത്രം" },
-    { key: "rationCard",  icon: "🪪", en: "Ration Card",     ml: "റേഷൻ കാർഡ്" },
-    { key: "aadhaarCard", icon: "📋", en: "Aadhaar Card",    ml: "ആധാർ കാർഡ്" },
-    { key: "medicalDocs", icon: "🏥", en: "Medical Records", ml: "മെഡിക്കൽ രേഖകൾ" },
+    { key: "housePhoto",  icon: "🏠", en: "House Photo",     ml: "മുന്നിൽ നിന്ന് നിങ്ങളുടെ വീടിന്റെ മുഴുവൻ ചിത്രം" },
+    { key: "rationCard",  icon: "🪪", en: "Ration Card",     ml: "നിങ്ങളുടെ റേഷൻ കാർഡിന്റെ ചിത്രം" },
+    { key: "aadhaarCard", icon: "📋", en: "Aadhaar Card",    ml: "നിങ്ങളുടെ ആധാർ കാർഡിന്റെ ചിത്രം" },
+    { key: "medicalDocs", icon: "🏥", en: "Medical Records", ml: "മെഡിക്കൽ ഡോക്യുമെന്റേഷന്റെ ചിത്രം" },
   ];
 
   return (
@@ -343,8 +343,10 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
           {compressing ? "Compressing... · ചെറുതാക്കുന്നു..." : "Tap to upload full body photo"}
         </div>
         <div style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.6 }}>
-          Show injured leg/arm clearly<br />
-          <span style={{ color: "#B0B8C4" }}>നഷ്ടപ്പെട്ട കാൽ / കൈ വ്യക്തമായി കാണിക്കുക</span>
+          Show injured leg/arm clearly
+        </div>
+        <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.6, marginTop: 2 }} lang="ml">
+          നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം
         </div>
         <span style={styles.sizePill}>Max 5 MB · പരമാവധി 5 MB</span>
       </label>
@@ -393,7 +395,7 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
       )}
 
       <div style={{ marginTop: 18 }}>
-        <div style={styles.sectionLabel}>Required Documents · ആവശ്യമായ രേഖകൾ</div>
+        <div style={styles.sectionLabel}>Supporting Documents · <span lang="ml">സഹായ രേഖകൾ</span> <span style={{ fontWeight: 400, textTransform: "none", fontSize: 10 }}>(optional · ഐച്ഛികം)</span></div>
         <div style={styles.docGrid}>
           {DOCS.map(doc => (
             <label key={doc.key} style={{ ...styles.docCard, ...(data[doc.key] ? styles.docCardDone : {}) }}>
@@ -409,8 +411,8 @@ function StepDocuments({ data, onChange, onNext, onBack }: {
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>{doc.en}</div>
-              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{doc.ml}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{doc.en}</div>
+              <div style={{ fontSize: 11, color: "#6B7280", marginTop: 3, lineHeight: 1.4 }} lang="ml">{doc.ml}</div>
             </label>
           ))}
         </div>
