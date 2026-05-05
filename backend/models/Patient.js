@@ -29,13 +29,13 @@ const patientSchema = new mongoose.Schema(
 );
 
 // Auto-generate Registration ID before first save
-patientSchema.pre('save', async function (next) {
+// Mongoose 8+: async pre hooks do not use next() — just return
+patientSchema.pre('save', async function () {
   if (!this.registrationId) {
     const year  = new Date().getFullYear();
     const count = await mongoose.model('Patient').countDocuments();
     this.registrationId = `LNL-${year}-${String(count + 1).padStart(5, '0')}`;
   }
-  next();
 });
 
 // Virtual: count of uploaded documents
