@@ -126,7 +126,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3">
+        <div className="admin-filter-row flex flex-wrap gap-3">
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}

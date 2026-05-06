@@ -48,7 +48,7 @@ export default function AdminTable({ patients, onView }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-[#E5E7EB]">
+    <div className="admin-table-wrap overflow-x-auto rounded-[14px] border border-[#E5E7EB]">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-50 border-b border-[#E5E7EB]">
@@ -67,21 +67,21 @@ export default function AdminTable({ patients, onView }: Props) {
 
             return (
               <tr key={p._id} className={`border-b border-[#E5E7EB] hover:bg-gray-50 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}>
-                <td className="px-4 py-3">
+                <td data-label="Patient" className="px-4 py-3">
                   <div className="font-semibold text-[#374151]">{p.fullName}</div>
                   <div className="text-xs text-[#9CA3AF]">{p.age}y · {p.gender}</div>
                 </td>
-                <td className="px-4 py-3 text-[#374151]">{p.phone}</td>
-                <td className="px-4 py-3">
+                <td data-label="Phone" className="px-4 py-3 text-[#374151]">{p.phone}</td>
+                <td data-label="Registered" className="px-4 py-3">
                   <div className="text-[#374151]">{date}</div>
                   <div className="text-xs text-[#9CA3AF]">{time}</div>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Status" className="px-4 py-3">
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${statusBadge[p.status]}`}>
                     {statusLabel[p.status]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-[#374151]">{docCount}/3</td>
+                <td data-label="Docs" className="px-4 py-3 text-[#374151]">{docCount}/3</td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => onView(p)}

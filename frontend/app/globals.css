@@ -40,3 +40,152 @@ button {
     text-wrap: balance;
   }
 }
+
+/* ── Responsive grid helpers for patient registration ────────────────────── */
+.reg-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+}
+.reg-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px 28px;
+}
+.reg-card-pad {
+  padding: 28px 40px;
+}
+.reg-header-pad {
+  padding: 0 40px;
+}
+.reg-body-pad {
+  padding: 28px 40px 48px;
+}
+.reg-section-bar {
+  padding: 20px 40px;
+}
+.reg-nav-bar {
+  padding: 20px 40px;
+}
+.reg-title {
+  font-size: 32px;
+}
+.reg-review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 640px) {
+  .reg-grid-2,
+  .reg-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .reg-card-pad {
+    padding: 20px 16px;
+  }
+  .reg-header-pad {
+    padding: 0 16px;
+  }
+  .reg-body-pad {
+    padding: 16px 12px 40px;
+  }
+  .reg-section-bar {
+    padding: 16px;
+  }
+  .reg-nav-bar {
+    padding: 16px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch !important;
+  }
+  .reg-nav-bar > div:first-child {
+    display: none; /* hide "Section X of Y" text on mobile — visible in header */
+  }
+  .reg-nav-bar > div:last-child {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+  }
+  .reg-nav-bar > div:last-child button {
+    flex: 1;
+  }
+  .reg-title {
+    font-size: 22px;
+  }
+  .reg-review-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Stepper: hide text labels on mobile, show only circles */
+  .reg-step-label {
+    display: none;
+  }
+  /* Shrink stepper circles a bit */
+  .reg-step-circle {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 11px !important;
+  }
+  /* Logo in header */
+  .reg-logo {
+    height: 38px !important;
+  }
+  /* Submit button full-width on mobile */
+  .reg-submit-btn {
+    width: 100%;
+    padding: 0 20px !important;
+  }
+}
+
+/* ── Admin table: card layout on mobile ──────────────────────────────────── */
+@media (max-width: 640px) {
+  .admin-table-wrap table,
+  .admin-table-wrap thead,
+  .admin-table-wrap tbody,
+  .admin-table-wrap th,
+  .admin-table-wrap td,
+  .admin-table-wrap tr {
+    display: block;
+  }
+  .admin-table-wrap thead {
+    display: none;
+  }
+  .admin-table-wrap tr {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px;
+    position: relative;
+  }
+  .admin-table-wrap td {
+    padding: 4px 8px;
+    border: none;
+    font-size: 14px;
+  }
+  .admin-table-wrap td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    color: #9CA3AF;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+  .admin-table-wrap td:last-child {
+    margin-top: 8px;
+  }
+  .admin-table-wrap td:last-child button {
+    width: 100%;
+  }
+  /* Dashboard filters stack on mobile */
+  .admin-filter-row {
+    flex-direction: column;
+  }
+  .admin-filter-row select,
+  .admin-filter-row input {
+    width: 100%;
+    min-width: unset !important;
+  }
+}
