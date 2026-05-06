@@ -1,12 +1,11 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { formatIST } from '@/lib/utils';
 
 function SuccessContent() {
   const params   = useSearchParams();
-  const router   = useRouter();
   const regId    = params.get('id') || 'LNL-XXXX-00000';
   const at       = params.get('at') || new Date().toISOString();
   const { date, time } = formatIST(at);
