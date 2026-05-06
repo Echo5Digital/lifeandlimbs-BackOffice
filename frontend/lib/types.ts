@@ -27,14 +27,30 @@ export interface Patient {
   documents: {
     patientPhoto: string | null;
     housePhoto: string | null;
-    rationCard: string | null;
     aadhaarCard: string | null;
-    medicalDocs: string | null;
   };
   status: PatientStatus;
   registrationId: string;
   registeredAt: string;
   docCount?: number;
+  // Detailed registration form fields (all optional)
+  firstName?: string; lastName?: string; dateOfBirth?: string; maritalStatus?: string;
+  addressHouse?: string; addressPO?: string; city?: string; state?: string;
+  zipcode?: string; country?: string; homePhone?: string;
+  fatherName?: string; motherName?: string; spouseName?: string;
+  spouseOccupation?: string; spousePhone?: string; childrenCount?: number;
+  parentsPhone?: string; yearsMarried?: number;
+  height?: string; weight?: string; occupation?: string;
+  householdIncomeMonthly?: string; householdAssets?: string;
+  totalHouseholdAssetValue?: string; ownsHouse?: boolean;
+  howDidYouKnow?: string; referredBy?: string;
+  dateLostLimb?: string; howLostLeg?: string; yearsLost?: number;
+  legsLostCount?: number; rightLeg?: boolean; leftLeg?: boolean; limbLossDetails?: string;
+  hospitalName?: string; doctorName?: string; hospitalAddress?: string;
+  hospitalizedFrom?: string; hospitalizedTo?: string;
+  usedProsthetic?: boolean; prostheticYears?: number;
+  whyNewProsthetic?: string; prostheticSource?: string; prostheticManufacturer?: string;
+  detailsSubmittedAt?: string;
 }
 
 // Stats are dynamic — any PatientStatus key may appear

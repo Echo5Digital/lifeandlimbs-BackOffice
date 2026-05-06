@@ -39,14 +39,15 @@ export default function AdminLoginPage() {
 
   const inputClass = `
     w-full h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-base
-    focus:outline-none focus:ring-2 focus:ring-[#1A6B3A] focus:border-transparent bg-white
+    focus:outline-none focus:ring-2 focus:ring-[#0369a1] focus:border-transparent bg-white
   `;
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-sm w-full">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-[#1A6B3A]">Life and Limbs</h1>
+          <img src="/logo.webp" alt="Life and Limb" className="w-16 h-16 object-contain mx-auto mb-2" />
+          <h1 className="text-2xl font-bold text-[#0369a1]">Life and Limbs</h1>
           <p className="text-sm text-[#9CA3AF] mt-1">Admin Portal</p>
         </div>
 
@@ -89,7 +90,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#1A6B3A] text-white rounded-[9px] text-base font-semibold hover:bg-[#155c30] disabled:opacity-60 transition-colors"
+              className="w-full py-3 bg-[#0369a1] text-white rounded-[9px] text-base font-semibold hover:bg-[#025f8f] disabled:opacity-60 transition-colors"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>

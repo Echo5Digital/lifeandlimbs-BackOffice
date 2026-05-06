@@ -18,7 +18,7 @@ function authHeaders() {
 const statCards: { key: PatientStatus; label: string; color: string; bg: string; border: string }[] = [
   { key: 'new',                  label: 'New',              color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
   { key: 'ready_for_evaluation', label: 'Ready to Evaluate',color: 'text-[#6D28D9]', bg: 'bg-[#F5F3FF]', border: 'border-[#C4B5FD]' },
-  { key: 'approved',             label: 'Approved',         color: 'text-[#1A6B3A]', bg: 'bg-[#F0FAF4]', border: 'border-[#86EFAC]' },
+  { key: 'approved',             label: 'Approved',         color: 'text-[#0369a1]', bg: 'bg-[#f0f9ff]', border: 'border-[#86EFAC]' },
   { key: 'completed',            label: 'Completed',        color: 'text-[#064E3B]', bg: 'bg-[#D1FAE5]', border: 'border-[#6EE7B7]' },
 ];
 
@@ -89,14 +89,17 @@ export default function AdminDashboard() {
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#1A6B3A]">Admin Dashboard</h1>
-          <p className="text-xs text-[#9CA3AF]">Life and Limbs Foundation · Patient Registrations</p>
+        <div className="flex items-center gap-2">
+          <img src="/logo.webp" alt="Life and Limb" className="w-8 h-8 object-contain" />
+          <div>
+            <h1 className="text-lg font-bold text-[#0369a1]">Admin Dashboard</h1>
+            <p className="text-xs text-[#9CA3AF]">Life and Limb – Registration · Patient Registrations</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push('/')}
-            className="px-3 py-2 text-sm border border-[#1A6B3A] text-[#1A6B3A] rounded-[9px] hover:bg-[#F0FAF4] min-h-0 transition-colors"
+            className="px-3 py-2 text-sm border border-[#0369a1] text-[#0369a1] rounded-[9px] hover:bg-[#f0f9ff] min-h-0 transition-colors"
           >
             + New
           </button>
@@ -127,7 +130,7 @@ export default function AdminDashboard() {
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]"
+            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
           >
             <option value="all">All Status</option>
             <option value="new">New Registration</option>
@@ -147,7 +150,7 @@ export default function AdminDashboard() {
           <select
             value={filterDistrict}
             onChange={(e) => { setFilterDistrict(e.target.value); setPage(1); }}
-            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]"
+            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
           >
             <option value="all">All Districts</option>
             {districts.map((d) => (
@@ -160,7 +163,7 @@ export default function AdminDashboard() {
             placeholder="Search name or phone..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1A6B3A] flex-1 min-w-[180px]"
+            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1] flex-1 min-w-[180px]"
           />
         </div>
 

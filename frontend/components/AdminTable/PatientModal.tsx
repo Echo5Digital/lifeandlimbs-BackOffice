@@ -32,11 +32,9 @@ const statusOptions: { value: PatientStatus; label: string }[] = [
 ];
 
 const docLabels: { key: keyof Patient['documents']; label: string }[] = [
-  { key: 'patientPhoto', label: 'Patient Photo' },
-  { key: 'housePhoto',   label: 'House Photo' },
-  { key: 'rationCard',   label: 'Ration Card' },
+  { key: 'patientPhoto', label: 'Patient full picture that shows lost leg' },
+  { key: 'housePhoto',   label: 'House with Patient in front' },
   { key: 'aadhaarCard',  label: 'Aadhaar Card' },
-  { key: 'medicalDocs',  label: 'Medical Records' },
 ];
 
 export default function PatientModal({ patient, onClose, onStatusUpdated }: Props) {
@@ -89,8 +87,8 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
 
           <div className="p-4 space-y-4">
             {/* Registration date */}
-            <div className="p-3 bg-[#F0FAF4] rounded-[9px] text-sm">
-              <span className="font-medium text-[#1A6B3A]">Registered:</span>{' '}
+            <div className="p-3 bg-[#f0f9ff] rounded-[9px] text-sm">
+              <span className="font-medium text-[#0369a1]">Registered:</span>{' '}
               <span className="text-[#374151]">{date} · {time} IST</span>
             </div>
 
@@ -124,7 +122,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
                 {docLabels.map(({ key, label }) => {
                   const url = patient.documents[key];
                   return (
-                    <div key={key} className={`border rounded-[9px] p-2 text-sm ${url ? 'border-[#1A6B3A] bg-[#F0FAF4]' : 'border-[#E5E7EB] bg-gray-50'}`}>
+                    <div key={key} className={`border rounded-[9px] p-2 text-sm ${url ? 'border-[#0369a1] bg-[#f0f9ff]' : 'border-[#E5E7EB] bg-gray-50'}`}>
                       <div className="text-xs text-[#9CA3AF]">{label}</div>
                       {url ? (
                         <img
@@ -148,7 +146,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as PatientStatus)}
-                className="w-full h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-base focus:outline-none focus:ring-2 focus:ring-[#1A6B3A] bg-white"
+                className="w-full h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-base focus:outline-none focus:ring-2 focus:ring-[#0369a1] bg-white"
               >
                 {statusOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -157,7 +155,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
             </div>
 
             {saveMsg && (
-              <div className={`text-sm p-2 rounded-[9px] ${saveMsg.includes('success') ? 'bg-[#F0FAF4] text-[#1A6B3A]' : 'bg-red-50 text-red-700'}`}>
+              <div className={`text-sm p-2 rounded-[9px] ${saveMsg.includes('success') ? 'bg-[#f0f9ff] text-[#0369a1]' : 'bg-red-50 text-red-700'}`}>
                 {saveMsg}
               </div>
             )}
@@ -165,7 +163,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-3 bg-[#1A6B3A] text-white rounded-[9px] font-semibold hover:bg-[#155c30] disabled:opacity-60 transition-colors"
+              className="w-full py-3 bg-[#0369a1] text-white rounded-[9px] font-semibold hover:bg-[#025f8f] disabled:opacity-60 transition-colors"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

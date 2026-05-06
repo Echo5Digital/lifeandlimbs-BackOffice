@@ -140,4 +140,40 @@ const updatePatientStatus = async (req, res) => {
   }
 };
 
-module.exports = { registerPatient, getPatients, getPatientById, updatePatientStatus };
+// PATCH /api/patients/:registrationId/details
+const updatePatientDetails = async (req, res) => {
+  try {
+    const { registrationId } = req.params;
+    const allowed = [
+      'firstName','lastName','dateOfBirth','maritalStatus',
+      'addressHouse','addressPO','city','state','zipcode','country','homePhone',
+      'fatherName','motherName','spouseName','spouseOccupation','spousePhone',
+      'childrenCount','parentsPhone','yearsMarried',
+      'height','weight','occupation','householdIncomeMonthly','householdAssets',
+      'totalHouseholdAssetValue','ownsHouse',
+      'howDidYouKnow','referredBy',
+      'dateLostLimb','howLostLeg','yearsLost','legsLostCount','rightLeg','leftLeg','limbLossDetails',
+      'hospitalName','doctorName','hospitalAddress','hospitalizedFrom','hospitalizedTo',
+      'usedProsthetic','prostheticYears','whyNewProsthetic','prostheticSource','prostheticManufacturer',
+    ];
+    const update = { detailsSubmittedAt: new Date() };
+    allowed.forEach(key => {
+      if (req.body[key] !== undefined) update[key] = req.body[key];
+    });
+
+    const patient = await Patient.findOneAndUpdate(
+      { registrationId },
+      update,
+      { new: true }
+    );
+    if (!patient) {
+      return res.status(404).json({ success: false, message: 'Patient not found.' });
+    }
+    res.json({ success: true, registrationId: patient.registrationId, submittedAt: patient.detailsSubmittedAt });
+  } catch (err) {
+    console.error('updatePatientDetails error:', err);
+    res.status(500).json({ success: false, message: 'Failed to save details.' });
+  }
+};
+
+module.exports = { registerPatient, getPatients, getPatientById, updatePatientStatus, updatePatientDetails };

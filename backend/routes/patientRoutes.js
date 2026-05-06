@@ -7,6 +7,7 @@ const {
   getPatients,
   getPatientById,
   updatePatientStatus,
+  updatePatientDetails,
 } = require('../controllers/patientController');
 const { protect } = require('../middleware/auth');
 
@@ -41,6 +42,9 @@ router.post(
   },
   registerPatient
 );
+
+// Public — detailed form submission (registrationId as key, no auth)
+router.patch('/patients/:registrationId/details', updatePatientDetails);
 
 // Admin protected
 router.get('/admin/patients',        protect, getPatients);

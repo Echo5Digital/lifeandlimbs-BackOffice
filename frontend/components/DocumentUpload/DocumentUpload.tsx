@@ -58,7 +58,7 @@ function DocCard({ icon, label, ml, fieldName, fileInfo, onFile, autoCompress }:
   return (
     <div
       className={`border rounded-[14px] p-3 cursor-pointer transition-colors ${
-        fileInfo ? 'border-[#1A6B3A] bg-[#F0FAF4]' : 'border-[#E5E7EB] bg-white'
+        fileInfo ? 'border-[#0369a1] bg-[#f0f9ff]' : 'border-[#E5E7EB] bg-white'
       }`}
       onClick={() => inputRef.current?.click()}
     >
@@ -76,14 +76,14 @@ function DocCard({ icon, label, ml, fieldName, fileInfo, onFile, autoCompress }:
           <div className="text-xs text-[#9CA3AF]" lang="ml">{ml}</div>
         </div>
         {fileInfo && (
-          <div className="w-6 h-6 bg-[#1A6B3A] rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="w-6 h-6 bg-[#0369a1] rounded-full flex items-center justify-center flex-shrink-0">
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           </div>
         )}
         {compressing && (
-          <div className="text-xs text-[#1A6B3A] animate-pulse">Compressing...</div>
+          <div className="text-xs text-[#0369a1] animate-pulse">Compressing...</div>
         )}
       </div>
 
@@ -95,12 +95,12 @@ function DocCard({ icon, label, ml, fieldName, fileInfo, onFile, autoCompress }:
               <div className="truncate font-medium">{fileInfo.file.name}</div>
               <div className="text-[#9CA3AF]">
                 {fileSizeMB(fileInfo.originalSize)} MB → {fileSizeMB(fileInfo.compressedSize)} MB
-                {saved > 0 && <span className="text-[#1A6B3A] ml-1">· {saved}% saved</span>}
+                {saved > 0 && <span className="text-[#0369a1] ml-1">· {saved}% saved</span>}
               </div>
               {/* Compression progress bar */}
               <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#1A6B3A] rounded-full transition-all"
+                  className="h-full bg-[#0369a1] rounded-full transition-all"
                   style={{ width: `${Math.max(10, 100 - saved)}%` }}
                 />
               </div>
@@ -155,7 +155,7 @@ function PatientPhotoZone({ fileInfo, onFile, autoCompress }: PhotoZoneProps) {
 
   return (
     <div
-      className="border-2 border-dashed border-[#1A6B3A] rounded-[14px] p-6 text-center cursor-pointer bg-[#F0FAF4] mb-4"
+      className="border-2 border-dashed border-[#0369a1] rounded-[14px] p-6 text-center cursor-pointer bg-[#f0f9ff] mb-4"
       onClick={() => inputRef.current?.click()}
     >
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -163,32 +163,30 @@ function PatientPhotoZone({ fileInfo, onFile, autoCompress }: PhotoZoneProps) {
       {!fileInfo ? (
         <>
           <div className="text-4xl mb-2">📷</div>
-          <div className="text-base font-semibold text-[#1A6B3A]">Tap to upload full body photo</div>
-          <div className="text-sm text-[#9CA3AF] mt-1" lang="ml">ഫോട്ടോ അപ്‌ലോഡ് ചെയ്യുക</div>
-          <div className="text-sm text-[#374151] mt-1">Show injured leg/arm clearly</div>
-          <div className="text-xs text-[#9CA3AF]" lang="ml">നഷ്ടപ്പെട്ട കാൽ/കൈ വ്യക്തമായി കാണിക്കുക</div>
+          <div className="text-base font-semibold text-[#0369a1]">Patient full picture that shows lost leg</div>
+          <div className="text-sm text-[#9CA3AF] mt-1" lang="ml">നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം</div>
           <div className="inline-block mt-3 px-3 py-1 bg-[#FEF9EC] text-[#92660A] text-xs rounded-full border border-[#FDE68A]">
             Max 5 MB · പരമാവധി 5 MB
           </div>
-          {compressing && <div className="mt-2 text-sm text-[#1A6B3A] animate-pulse">Compressing image...</div>}
+          {compressing && <div className="mt-2 text-sm text-[#0369a1] animate-pulse">Compressing image...</div>}
         </>
       ) : (
         <div className="flex items-center gap-3 text-left">
-          <img src={fileInfo.preview} alt="Patient photo" className="w-16 h-16 rounded-lg object-cover border-2 border-[#1A6B3A]" />
+          <img src={fileInfo.preview} alt="Patient photo" className="w-16 h-16 rounded-lg object-cover border-2 border-[#0369a1]" />
           <div className="flex-1 min-w-0">
             <div className="font-medium text-sm text-[#374151] truncate">{fileInfo.file.name}</div>
             <div className="text-xs text-[#9CA3AF] mt-0.5">
               Original: {fileSizeMB(fileInfo.originalSize)} MB →{' '}
               Compressed: {fileSizeMB(fileInfo.compressedSize)} MB
-              {saved > 0 && <span className="text-[#1A6B3A] ml-1">· {saved}% saved</span>}
+              {saved > 0 && <span className="text-[#0369a1] ml-1">· {saved}% saved</span>}
             </div>
             <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#1A6B3A] rounded-full"
+                className="h-full bg-[#0369a1] rounded-full"
                 style={{ width: `${Math.max(10, 100 - saved)}%` }}
               />
             </div>
-            <div className="text-xs text-[#1A6B3A] mt-1">Tap to change · മാറ്റുക</div>
+            <div className="text-xs text-[#0369a1] mt-1">Tap to change · മാറ്റുക</div>
           </div>
         </div>
       )}
@@ -202,9 +200,7 @@ function PatientPhotoZone({ fileInfo, onFile, autoCompress }: PhotoZoneProps) {
 export interface DocFiles {
   patientPhoto: FileInfo | null;
   housePhoto: FileInfo | null;
-  rationCard: FileInfo | null;
   aadhaarCard: FileInfo | null;
-  medicalDocs: FileInfo | null;
 }
 
 interface DocumentUploadProps {
@@ -213,10 +209,8 @@ interface DocumentUploadProps {
 }
 
 const docCards = [
-  { icon: '🏠', label: 'House Photo',    ml: 'വീടിൻ്റെ ചിത്രം',  field: 'housePhoto' },
-  { icon: '🪪', label: 'Ration Card',    ml: 'റേഷൻ കാർഡ്',       field: 'rationCard' },
+  { icon: '🏠', label: 'House with Patient in front', ml: 'വീടിൻ്റെ ചിത്രം', field: 'housePhoto' },
   { icon: '📋', label: 'Aadhaar Card',   ml: 'ആധാർ കാർഡ്',       field: 'aadhaarCard' },
-  { icon: '🏥', label: 'Medical Records', ml: 'മെഡിക്കൽ രേഖകൾ',  field: 'medicalDocs' },
 ];
 
 export default function DocumentUpload({ files, onFileChange }: DocumentUploadProps) {
@@ -239,7 +233,7 @@ export default function DocumentUpload({ files, onFileChange }: DocumentUploadPr
         <button
           type="button"
           onClick={() => setAutoCompress(!autoCompress)}
-          className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none min-h-0 ${autoCompress ? 'bg-[#1A6B3A]' : 'bg-gray-300'}`}
+          className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none min-h-0 ${autoCompress ? 'bg-[#0369a1]' : 'bg-gray-300'}`}
         >
           <span
             className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${autoCompress ? 'translate-x-7' : 'translate-x-1'}`}

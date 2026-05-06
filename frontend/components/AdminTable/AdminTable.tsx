@@ -15,7 +15,7 @@ const statusBadge: Record<PatientStatus, string> = {
   evaluated_pending:     'bg-[#FFF7ED] text-[#C2410C]',
   evaluated:             'bg-[#ECFDF5] text-[#065F46]',
   rejected:              'bg-[#FEF2F2] text-[#991B1B]',
-  approved:              'bg-[#F0FAF4] text-[#1A6B3A]',
+  approved:              'bg-[#f0f9ff] text-[#0369a1]',
   completed:             'bg-[#D1FAE5] text-[#064E3B]',
   follow_up:             'bg-[#FAF5FF] text-[#7E22CE]',
   repairs:               'bg-[#FFF3E0] text-[#B45309]',
@@ -81,11 +81,11 @@ export default function AdminTable({ patients, onView }: Props) {
                     {statusLabel[p.status]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-[#374151]">{docCount}/5</td>
+                <td className="px-4 py-3 text-[#374151]">{docCount}/3</td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => onView(p)}
-                    className="px-3 py-1.5 bg-[#1A6B3A] text-white text-xs rounded-[7px] hover:bg-[#155c30] min-h-0 transition-colors"
+                    className="px-3 py-1.5 bg-[#0369a1] text-white text-xs rounded-[7px] hover:bg-[#025f8f] min-h-0 transition-colors"
                   >
                     View →
                   </button>
