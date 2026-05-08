@@ -41,9 +41,6 @@ const divider: CSSProperties = { height: 1, background: C.border, margin: '22px 
 const cardBox: CSSProperties = {
   background: 'white', borderRadius: 20, border: `1px solid ${C.border}`, marginBottom: 20,
 };
-const cardPad: CSSProperties = { padding: '28px 40px' };
-const g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' };
-const g3: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px 28px' };
 
 function F({ label, sub, err, children }: { label: string; sub?: string; err?: string; children: React.ReactNode }) {
   return (
@@ -114,6 +111,19 @@ function PatientForm() {
   const [p, setP] = useState({ fullName: '', firstName: '', lastName: '', age: '', dateOfBirth: '', gender: '', phone: '', email: '', maritalStatus: '' });
   const [pErr, setPErr] = useState<Record<string, string>>({});
   const sp = (k: string, v: string) => { setP(x => ({ ...x, [k]: v })); if (pErr[k]) setPErr(e => ({ ...e, [k]: '' })); };
+  const spDob = (dob: string) => {
+    const updates: Partial<typeof p> = { dateOfBirth: dob };
+    if (dob) {
+      const birth = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      if (age >= 0 && age < 130) updates.age = String(age);
+    }
+    setP(x => ({ ...x, ...updates }));
+    setPErr(e => ({ ...e, dateOfBirth: '', age: '' }));
+  };
 
   // Documents
   const [docs, setDocs]     = useState<Docs>({ patientPhoto: null, housePhoto: null, aadhaarCard: null });
@@ -227,7 +237,7 @@ function PatientForm() {
       // ─ 0: Personal ─────────────────────────────────────────────────────────
       case 0: return (
         <>
-          <div style={{ ...g3, marginBottom: 16 }}>
+          <div className="reg-grid-3" style={{ marginBottom: 16 }}>
             <F label="First Name" sub="പേര്" err={pErr.firstName}>
               <input style={{ ...inp, ...(pErr.firstName ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }}
                 placeholder="e.g. Arun" value={p.firstName} onChange={e => sp('firstName', e.target.value)} />
@@ -236,13 +246,14 @@ function PatientForm() {
               <input style={inp} placeholder="e.g. Menon" value={p.lastName} onChange={e => sp('lastName', e.target.value)} />
             </F>
             <F label="Date of Birth" sub="ജനന തീയതി">
-              <input style={inp} type="date" value={p.dateOfBirth} onChange={e => sp('dateOfBirth', e.target.value)} />
+              <input style={inp} type="date" value={p.dateOfBirth} onChange={e => spDob(e.target.value)} />
             </F>
           </div>
-          <div style={{ ...g3, marginBottom: 16 }}>
-            <F label="Age" sub="പ്രായം" err={pErr.age}>
-              <input style={{ ...inp, ...(pErr.age ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }}
-                type="number" placeholder="Years" value={p.age} onChange={e => sp('age', e.target.value)} />
+          <div className="reg-grid-3" style={{ marginBottom: 16 }}>
+            <F label="Age" sub={p.dateOfBirth ? 'Auto-calculated · സ്വയം കണക്കാക്കി' : 'പ്രായം'} err={pErr.age}>
+              <input style={{ ...inp, ...(pErr.age ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}), ...(p.dateOfBirth ? { background: '#F3F4F6', color: '#6B7280' } : {}) }}
+                type="number" placeholder="Years" value={p.age} onChange={e => sp('age', e.target.value)}
+                readOnly={!!p.dateOfBirth} />
             </F>
             <F label="Sex / Gender" sub="ലിംഗം" err={pErr.gender}>
               <select style={{ ...sel, ...(pErr.gender ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }}
@@ -263,7 +274,7 @@ function PatientForm() {
               </select>
             </F>
           </div>
-          <div style={{ ...g2, marginBottom: 4 }}>
+          <div className="reg-grid-2" style={{ marginBottom: 4 }}>
             <F label="Phone Number" sub="ഫോൺ നമ്പർ" err={pErr.phone}>
               <div style={{ display: 'flex', border: `1.5px solid ${pErr.phone ? '#EF4444' : C.border}`, borderRadius: 10, overflow: 'hidden' }}>
                 <span style={{ display: 'flex', alignItems: 'center', padding: '0 18px', background: '#F9FAFB', borderRight: `1px solid ${C.border}`, fontSize: 16, fontWeight: 500, color: C.textSub, flexShrink: 0 }}>+91</span>
@@ -442,7 +453,7 @@ function PatientForm() {
               <input style={inp} placeholder="House name or number" value={d.addressHouse || ''} onChange={e => sd('addressHouse', e.target.value)} />
             </F>
           </div>
-          <div style={{ ...g2, marginBottom: 16 }}>
+          <div className="reg-grid-2" style={{ marginBottom: 16 }}>
             <F label="PO / Post Office" sub="പോസ്റ്റ് ഓഫീസ്"><input style={inp} placeholder="Post office" value={d.addressPO || ''} onChange={e => sd('addressPO', e.target.value)} /></F>
             <F label="City / Town" sub="നഗരം"><input style={inp} placeholder="City or town" value={d.city || ''} onChange={e => sd('city', e.target.value)} /></F>
             <F label="State" sub="സംസ്ഥാനം">
@@ -475,7 +486,7 @@ function PatientForm() {
             </F>
           </div>
           <div style={divider} />
-          <div style={g3}>
+          <div className="reg-grid-3">
             <F label="Home Phone" sub="വീട്ടിലെ ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.homePhone || ''} onChange={e => sd('homePhone', e.target.value)} /></F>
             <F label="Mobile" sub="മൊബൈൽ (from step 1)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.phone ? `+91 ${p.phone}` : 'Filled from step 1'} /></F>
             <F label="Email" sub="ഇ-മെയിൽ (from step 1)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.email || 'Filled from step 1'} /></F>
@@ -487,14 +498,14 @@ function PatientForm() {
       case 3: return (
         <>
           <div style={subHead}>Parent / Guardian</div>
-          <div style={{ ...g3, marginBottom: 4 }}>
+          <div className="reg-grid-3" style={{ marginBottom: 4 }}>
             <F label="Father's Name" sub="പിതാവ്"><input style={inp} placeholder="Father's full name" value={d.fatherName || ''} onChange={e => sd('fatherName', e.target.value)} /></F>
             <F label="Mother's Name" sub="മാതാവ്"><input style={inp} placeholder="Mother's full name" value={d.motherName || ''} onChange={e => sd('motherName', e.target.value)} /></F>
             <F label="Parents' Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.parentsPhone || ''} onChange={e => sd('parentsPhone', e.target.value)} /></F>
           </div>
           <div style={divider} />
           <div style={subHead}>Spouse &amp; Children</div>
-          <div style={{ ...g3, marginBottom: 4 }}>
+          <div className="reg-grid-3" style={{ marginBottom: 4 }}>
             <F label="Spouse Name" sub="പങ്കാളി"><input style={inp} placeholder="Spouse's full name" value={d.spouseName || ''} onChange={e => sd('spouseName', e.target.value)} /></F>
             <F label="Spouse Occupation" sub="തൊഴിൽ"><input style={inp} placeholder="Occupation" value={d.spouseOccupation || ''} onChange={e => sd('spouseOccupation', e.target.value)} /></F>
             <F label="Spouse Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.spousePhone || ''} onChange={e => sd('spousePhone', e.target.value)} /></F>
@@ -503,7 +514,7 @@ function PatientForm() {
           </div>
           <div style={divider} />
           <div style={subHead}>Physical Details</div>
-          <div style={g2}>
+          <div className="reg-grid-2">
             <F label="Height" sub="ഉയരം"><input style={inp} placeholder="e.g. 165 cm" value={d.height || ''} onChange={e => sd('height', e.target.value)} /></F>
             <F label="Weight" sub="ഭാരം"><input style={inp} placeholder="e.g. 65 kg" value={d.weight || ''} onChange={e => sd('weight', e.target.value)} /></F>
           </div>
@@ -513,7 +524,7 @@ function PatientForm() {
       // ─ 4: Occupation ───────────────────────────────────────────────────────
       case 4: return (
         <>
-          <div style={g3}>
+          <div className="reg-grid-3">
             <F label="Occupation" sub="തൊഴിൽ"><input style={inp} placeholder="e.g. Farmer, Teacher" value={d.occupation || ''} onChange={e => sd('occupation', e.target.value)} /></F>
             <F label="Monthly Household Income" sub="പ്രതിമാസ വരുമാനം"><input style={inp} placeholder="₹ Amount" value={d.householdIncomeMonthly || ''} onChange={e => sd('householdIncomeMonthly', e.target.value)} /></F>
             <F label="Household Assets" sub="ആസ്തി"><input style={inp} placeholder="Bike / Car / Land" value={d.householdAssets || ''} onChange={e => sd('householdAssets', e.target.value)} /></F>
@@ -533,7 +544,7 @@ function PatientForm() {
       // ─ 5: Referral ─────────────────────────────────────────────────────────
       case 5: return (
         <>
-          <div style={g2}>
+          <div className="reg-grid-2">
             <F label="How did you hear about us?" sub="ലൈഫ് & ലിംബ് നെ കുറിച്ച് അറിഞ്ഞത്">
               <select style={sel} value={d.howDidYouKnow || ''} onChange={e => sd('howDidYouKnow', e.target.value)}>
                 <option value="">Select one</option>
@@ -558,7 +569,7 @@ function PatientForm() {
             <span>Please fill in as much detail as possible — this helps us prepare the right prosthetic solution.</span>
           </div>
           <div style={subHead}>Limb Loss Details</div>
-          <div style={{ ...g3, marginBottom: 16 }}>
+          <div className="reg-grid-3" style={{ marginBottom: 16 }}>
             <F label="Date of Limb Loss" sub="കാലുകൾ നഷ്ടപ്പെട്ട തീയതി"><input style={inp} type="date" value={d.dateLostLimb || ''} onChange={e => sd('dateLostLimb', e.target.value)} /></F>
             <F label="How did you lose your limb?" sub="കാരണം">
               <select style={sel} value={d.howLostLeg || ''} onChange={e => sd('howLostLeg', e.target.value)}>
@@ -605,13 +616,13 @@ function PatientForm() {
           </div>
           <div style={divider} />
           <div style={subHead}>Hospital Information</div>
-          <div style={{ ...g3, marginBottom: 16 }}>
+          <div className="reg-grid-3" style={{ marginBottom: 16 }}>
             <F label="Hospital Name" sub="ഹോസ്പിറ്റൽ"><input style={inp} placeholder="Hospital name" value={d.hospitalName || ''} onChange={e => sd('hospitalName', e.target.value)} /></F>
             <F label="Doctor's Name" sub="ഡോക്ടർ"><input style={inp} placeholder="Doctor's full name" value={d.doctorName || ''} onChange={e => sd('doctorName', e.target.value)} /></F>
             <F label="Hospital Address" sub="അഡ്രസ്"><input style={inp} placeholder="Address" value={d.hospitalAddress || ''} onChange={e => sd('hospitalAddress', e.target.value)} /></F>
           </div>
           <div style={subHead}>Hospitalization Period</div>
-          <div style={g2}>
+          <div className="reg-grid-2">
             <F label="From"><input style={inp} type="date" value={d.hospitalizedFrom || ''} onChange={e => sd('hospitalizedFrom', e.target.value)} /></F>
             <F label="To"><input style={inp} type="date" value={d.hospitalizedTo || ''} onChange={e => sd('hospitalizedTo', e.target.value)} /></F>
           </div>
@@ -633,7 +644,7 @@ function PatientForm() {
               </div>
             </F>
           </div>
-          <div style={{ ...g2, marginBottom: 16 }}>
+          <div className="reg-grid-2" style={{ marginBottom: 16 }}>
             <F label="Years using prosthetic" sub="എത്ര വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.prostheticYears || ''} onChange={e => sd('prostheticYears', e.target.value)} /></F>
             <F label="Where did you get it from?" sub="എവിടെ നിന്ന്"><input style={inp} placeholder="Source / organization" value={d.prostheticSource || ''} onChange={e => sd('prostheticSource', e.target.value)} /></F>
             <F label="Manufacturer / Brand" sub="നിർമ്മാണ കമ്പനി"><input style={inp} placeholder="Brand name" value={d.prostheticManufacturer || ''} onChange={e => sd('prostheticManufacturer', e.target.value)} /></F>
@@ -647,97 +658,106 @@ function PatientForm() {
       // ─ 8: Review & Submit ──────────────────────────────────────────────────
       case 8: {
         const rv = (v: string | undefined) => v && v.trim() ? v : null;
-        const RGroup = ({ title, step, rows }: { title: string; step: number; rows: [string, string | null][] }) => {
+
+        // Section summary card — shows heading + tick if any data filled, else a subtle "not filled" state
+        const RSec = ({ icon, title, step, hasData, rows }: {
+          icon: React.ReactNode; title: string; step: number;
+          hasData: boolean; rows: [string, string | null][];
+        }) => {
           const filled = rows.filter(([, v]) => v);
-          if (!filled.length) return null;
           return (
-            <div style={{ marginBottom: 20, background: C.surface, borderRadius: 14, overflow: 'hidden', border: `1px solid ${C.border}` }}>
-              <div style={{ padding: '10px 18px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white' }}>
-                <span style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: C.blue }}>{title}</span>
-                <button onClick={() => goTo(step)} style={{ fontSize: 11, color: C.blue, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Edit</button>
+            <div style={{ marginBottom: 12, background: 'white', borderRadius: 16, border: `1.5px solid ${hasData ? C.border : C.border}`, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              {/* Header row */}
+              <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: hasData ? C.light : '#FAFAFA', borderBottom: hasData ? `1px solid ${C.border}` : 'none' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: hasData ? C.blue : '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: hasData ? 'white' : '#9CA3AF', flexShrink: 0, fontSize: 16 }}>
+                  {hasData
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20,6 9,17 4,12"/></svg>
+                    : icon}
+                </div>
+                <span style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 13, fontWeight: 700, color: hasData ? C.dark : C.textMuted, flex: 1 }}>{title}</span>
+                <button onClick={() => goTo(step)} style={{ fontSize: 12, color: C.blue, background: 'none', border: `1px solid ${C.borderStrong}`, borderRadius: 20, cursor: 'pointer', padding: '3px 12px', fontWeight: 500 }}>Edit</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '4px 0' }}>
-                {filled.map(([k, v]) => (
-                  <div key={k} style={{ padding: '8px 18px', borderBottom: `1px solid ${C.border}` }}>
-                    <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 2 }}>{k}</div>
-                    <div style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{v}</div>
-                  </div>
-                ))}
-              </div>
+              {/* Data rows — only shown if section has data */}
+              {hasData && filled.length > 0 && (
+                <div className="reg-review-grid" style={{ padding: '4px 0' }}>
+                  {filled.map(([k, v]) => (
+                    <div key={k} style={{ padding: '7px 16px', borderBottom: `1px solid ${C.border}` }}>
+                      <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 1, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{k}</div>
+                      <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         };
+
+        const docsOk = !!(docs.patientPhoto && docs.housePhoto && docs.aadhaarCard);
+
         return (
           <>
-            <div style={{ marginBottom: 24 }}>
-              <RGroup title="Personal" step={0} rows={[
+            <div style={{ marginBottom: 8, padding: '10px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, fontSize: 13, color: '#166534', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              Review your details before submitting · സമർപ്പിക്കുന്നതിന് മുൻപ് പരിശോധിക്കുക
+            </div>
+            <div style={{ marginBottom: 20, marginTop: 16 }}>
+              <RSec icon={SEC_ICONS[0]} title="Personal Information" step={0} hasData={!!(p.firstName || p.age)} rows={[
                 ['First Name', rv(p.firstName)],
-                ['Last Name',  rv(p.lastName)],
+                ['Last Name', rv(p.lastName)],
                 ['Date of Birth', rv(p.dateOfBirth)],
-                ['Age',        rv(p.age) ? `${p.age} years` : null],
-                ['Gender',     rv(p.gender)],
+                ['Age', rv(p.age) ? `${p.age} yrs` : null],
+                ['Gender', rv(p.gender)],
                 ['Marital Status', rv(p.maritalStatus)],
-                ['Phone',      rv(p.phone) ? `+91 ${p.phone}` : null],
-                ['Email',      rv(p.email)],
+                ['Phone', rv(p.phone) ? `+91 ${p.phone}` : null],
+                ['Email', rv(p.email)],
               ]} />
-              <RGroup title="Documents" step={1} rows={[
-                ['Patient Photo',  docs.patientPhoto ? '✓ Uploaded' : null],
-                ['House Photo',    docs.housePhoto   ? '✓ Uploaded' : null],
-                ['Aadhaar Card',   docs.aadhaarCard  ? '✓ Uploaded' : null],
+              <RSec icon={SEC_ICONS[1]} title="Documents" step={1} hasData={docsOk} rows={[
+                ['Patient Photo', docs.patientPhoto ? 'Uploaded ✓' : null],
+                ['House Photo', docs.housePhoto ? 'Uploaded ✓' : null],
+                ['Aadhaar Card', docs.aadhaarCard ? 'Uploaded ✓' : null],
               ]} />
-              <RGroup title="Contact" step={2} rows={[
-                ['House / Address', rv(d.addressHouse)],
+              <RSec icon={SEC_ICONS[2]} title="Contact Information" step={2} hasData={!!(d.addressHouse || d.city)} rows={[
+                ['Address', rv(d.addressHouse)],
                 ['Post Office', rv(d.addressPO)],
                 ['City', rv(d.city)],
-                ['State', rv(d.state)],
                 ['District', rv(d.district)],
-                ['Zipcode', rv(d.zipcode)],
+                ['State', rv(d.state)],
+                ['PIN', rv(d.zipcode)],
                 ['Country', rv(d.country)],
                 ['Home Phone', rv(d.homePhone)],
               ]} />
-              <RGroup title="Family & Physical" step={3} rows={[
-                ["Father's Name", rv(d.fatherName)],
-                ["Mother's Name", rv(d.motherName)],
-                ["Parents' Phone", rv(d.parentsPhone)],
-                ['Spouse Name', rv(d.spouseName)],
-                ['Spouse Occupation', rv(d.spouseOccupation)],
-                ['Spouse Phone', rv(d.spousePhone)],
-                ['Children', rv(d.childrenCount)],
-                ['Years Married', rv(d.yearsMarried)],
-                ['Height', rv(d.height)],
-                ['Weight', rv(d.weight)],
+              <RSec icon={SEC_ICONS[3]} title="Family Details" step={3} hasData={!!(d.fatherName || d.spouseName || d.height)} rows={[
+                ["Father", rv(d.fatherName)],
+                ["Mother", rv(d.motherName)],
+                ["Spouse", rv(d.spouseName)],
+                ["Children", rv(d.childrenCount)],
+                ["Height", rv(d.height)],
+                ["Weight", rv(d.weight)],
               ]} />
-              <RGroup title="Occupation & Financial" step={4} rows={[
+              <RSec icon={SEC_ICONS[4]} title="Occupation & Financial" step={4} hasData={!!(d.occupation || d.householdIncomeMonthly)} rows={[
                 ['Occupation', rv(d.occupation)],
                 ['Monthly Income', rv(d.householdIncomeMonthly)],
                 ['Assets', rv(d.householdAssets)],
-                ['Total Asset Value', rv(d.totalHouseholdAssetValue)],
                 ['Owns House', rv(d.ownsHouse)],
               ]} />
-              <RGroup title="Referral" step={5} rows={[
-                ['How did you know', rv(d.howDidYouKnow)],
+              <RSec icon={SEC_ICONS[5]} title="Referral" step={5} hasData={!!(d.howDidYouKnow || d.referredBy)} rows={[
+                ['How heard', rv(d.howDidYouKnow)],
                 ['Referred By', rv(d.referredBy)],
               ]} />
-              <RGroup title="Medical History" step={6} rows={[
-                ['Date of Limb Loss', rv(d.dateLostLimb)],
+              <RSec icon={SEC_ICONS[6]} title="Medical History" step={6} hasData={!!(d.howLostLeg || d.dateLostLimb)} rows={[
+                ['Date of Loss', rv(d.dateLostLimb)],
                 ['Cause', rv(d.howLostLeg)],
-                ['Years Since Loss', rv(d.yearsLost)],
                 ['Legs Lost', rv(d.legsLostCount)],
                 ['Right Leg', rv(d.rightLeg)],
                 ['Left Leg', rv(d.leftLeg)],
-                ['Details', rv(d.limbLossDetails)],
                 ['Hospital', rv(d.hospitalName)],
                 ['Doctor', rv(d.doctorName)],
-                ['Hospital Address', rv(d.hospitalAddress)],
-                ['Hospitalized From', rv(d.hospitalizedFrom)],
-                ['Hospitalized To', rv(d.hospitalizedTo)],
               ]} />
-              <RGroup title="Prosthetic Usage" step={7} rows={[
+              <RSec icon={SEC_ICONS[7]} title="Prosthetic Usage" step={7} hasData={!!(d.usedProsthetic)} rows={[
                 ['Used Before', rv(d.usedProsthetic)],
                 ['Years Used', rv(d.prostheticYears)],
                 ['Source', rv(d.prostheticSource)],
                 ['Manufacturer', rv(d.prostheticManufacturer)],
-                ['Reason for New', rv(d.whyNewProsthetic)],
               ]} />
             </div>
             {error && (
@@ -746,7 +766,7 @@ function PatientForm() {
               </div>
             )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={handleSubmit} disabled={loading} style={{ height: 54, background: C.amber, color: C.dark, border: 'none', borderRadius: 40, fontSize: 16, fontWeight: 700, cursor: 'pointer', padding: '0 40px', fontFamily: "var(--font-syne,'Syne',sans-serif)", opacity: loading ? 0.7 : 1 }}>
+              <button onClick={handleSubmit} disabled={loading} style={{ height: 54, background: C.amber, color: C.dark, border: 'none', borderRadius: 40, fontSize: 16, fontWeight: 700, cursor: 'pointer', padding: '0 40px', fontFamily: "var(--font-syne,'Syne',sans-serif)", opacity: loading ? 0.7 : 1, width: '100%', maxWidth: 340 }}>
                 {loading ? 'Submitting...' : 'Submit Registration →'}
               </button>
             </div>
@@ -772,11 +792,11 @@ function PatientForm() {
       <div style={{ background: C.dark, padding: '32px 0 0', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -60, right: -60, width: 260, height: 260, borderRadius: '50%', border: '44px solid rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -24, left: 200, width: 130, height: 130, borderRadius: '50%', border: '22px solid rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 40px' }}>
+        <div className="reg-header-pad" style={{ maxWidth: 1140, margin: '0 auto' }}>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Life and Limb – Registration</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <div>
-            <div style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 32, fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 5 }}>Patient Registration</div>
+            <div className="reg-title" style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 5 }}>Patient Registration</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
               രോഗി രജിസ്ട്രേഷൻ — Section {sec + 1} of {SECTIONS.length}
             </div>
@@ -789,10 +809,10 @@ function PatientForm() {
             {SECTIONS.map((s, i) => (
               <div key={s.label} style={{ display: 'contents' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: i <= sec ? 'pointer' : 'default' }} onClick={() => { if (i <= sec) goTo(i); }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 13, fontWeight: 700, flexShrink: 0, background: i === sec ? C.amber : i < sec ? C.mid : 'rgba(255,255,255,0.1)', color: i === sec ? C.dark : 'white', transition: 'all 0.3s' }}>
+                  <div className="reg-step-circle" style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 13, fontWeight: 700, flexShrink: 0, background: i === sec ? C.amber : i < sec ? C.mid : 'rgba(255,255,255,0.1)', color: i === sec ? C.dark : 'white', transition: 'all 0.3s' }}>
                     {i < sec ? '✓' : i + 1}
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap', color: i === sec ? '#fff' : i < sec ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}>{s.label}</span>
+                  <span className="reg-step-label" style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap', color: i === sec ? '#fff' : i < sec ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}>{s.label}</span>
                 </div>
                 {i < SECTIONS.length - 1 && <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)', margin: '0 8px', minWidth: 8, maxWidth: 32 }} />}
               </div>
@@ -803,20 +823,20 @@ function PatientForm() {
       </div>
 
       {/* ── Body ── */}
-      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '28px 40px 48px' }}>
+      <div className="reg-body-pad" style={{ maxWidth: 1140, margin: '0 auto' }}>
         <div style={cardBox}>
           {/* Section header bar */}
-          <div style={{ padding: '20px 40px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="reg-section-bar" style={{ borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: C.light, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.blue, flexShrink: 0 }}>{SEC_ICONS[sec]}</div>
             <div>
               <div style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 22, fontWeight: 700, color: C.dark }}>{SECTIONS[sec].title}</div>
               <div style={{ fontSize: 14, color: C.textMuted, marginTop: 3 }}>{SECTIONS[sec].sub}</div>
             </div>
           </div>
-          <div style={cardPad}>{renderSection()}</div>
+          <div className="reg-card-pad">{renderSection()}</div>
           {/* ── In-card nav ── */}
           {!isReview && (
-            <div style={{ padding: '20px 40px', borderTop: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="reg-nav-bar" style={{ borderTop: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontSize: 14, color: C.textMuted }}>
                 Section <span style={{ fontWeight: 700, color: C.dark }}>{sec + 1}</span> of {SECTIONS.length}
               </div>

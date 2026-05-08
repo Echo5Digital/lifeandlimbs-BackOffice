@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Patient, PatientStatus } from '@/lib/types';
+import { formatIST } from '@/lib/utils';
 
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
-import { formatIST } from '@/lib/utils';
 
 interface Props {
   patient: Patient;
@@ -32,10 +32,62 @@ const statusOptions: { value: PatientStatus; label: string }[] = [
 ];
 
 const docLabels: { key: keyof Patient['documents']; label: string }[] = [
-  { key: 'patientPhoto', label: 'Patient full picture that shows lost leg' },
-  { key: 'housePhoto',   label: 'House with Patient in front' },
+  { key: 'patientPhoto', label: 'Patient photo (shows lost leg)' },
+  { key: 'housePhoto',   label: 'House with patient in front' },
   { key: 'aadhaarCard',  label: 'Aadhaar Card' },
 ];
+
+// --- Detail section component ---
+function DetailSection({
+  title,
+  icon,
+  rows,
+  defaultOpen = false,
+}: {
+  title: string;
+  icon: string;
+  rows: [string, string | number | boolean | undefined | null][];
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const filled = rows.some(([, v]) => v !== undefined && v !== null && v !== '' && v !== false);
+
+  return (
+    <div className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
+      <button
+        onClick={() => setOpen((o: boolean) => !o)}
+        className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors min-h-0"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-base">{icon}</span>
+          <span className="text-sm font-semibold text-[#374151]">{title}</span>
+          {filled && (
+            <span className="inline-flex items-center justify-center w-4 h-4 bg-[#0369a1] text-white rounded-full text-[9px] font-bold">✓</span>
+          )}
+        </div>
+        <span className="text-[#9CA3AF] text-xs">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="grid grid-cols-2 gap-px bg-[#E5E7EB]">
+          {rows.map(([label, val]) => {
+            const display =
+              val === undefined || val === null || val === ''
+                ? '—'
+                : typeof val === 'boolean'
+                ? val ? 'Yes' : 'No'
+                : String(val);
+            return (
+              <div key={label} className="bg-white px-3 py-2">
+                <div className="text-[10px] text-[#9CA3AF] uppercase tracking-wide">{label}</div>
+                <div className="text-sm text-[#374151] font-medium mt-0.5 break-words">{display}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PatientModal({ patient, onClose, onStatusUpdated }: Props) {
   const [status, setStatus]     = useState<PatientStatus>(patient.status);
@@ -63,16 +115,19 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
     }
   };
 
+  const hasDetails = !!(patient.detailsSubmittedAt || patient.firstName || patient.dateOfBirth);
+
   return (
     <>
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-[14px] w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-[14px] w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-xl">
+
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB] sticky top-0 bg-white rounded-t-[14px]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB] sticky top-0 bg-white rounded-t-[14px] z-10">
             <div>
               <div className="font-semibold text-[#374151] text-lg">{patient.fullName}</div>
               <div className="text-xs text-[#9CA3AF]">{patient.registrationId}</div>
@@ -86,72 +141,150 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
           </div>
 
           <div className="p-4 space-y-4">
+
             {/* Registration date */}
-            <div className="p-3 bg-[#f0f9ff] rounded-[9px] text-sm">
-              <span className="font-medium text-[#0369a1]">Registered:</span>{' '}
-              <span className="text-[#374151]">{date} · {time} IST</span>
+            <div className="p-3 bg-[#f0f9ff] rounded-[9px] text-sm flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span className="font-medium text-[#0369a1]">Registered:</span>{' '}
+                <span className="text-[#374151]">{date} · {time} IST</span>
+              </div>
+              {hasDetails && patient.detailsSubmittedAt && (() => {
+                const d = formatIST(patient.detailsSubmittedAt!);
+                return (
+                  <div className="text-xs text-[#9CA3AF]">
+                    Details submitted: {d.date} · {d.time}
+                  </div>
+                );
+              })()}
             </div>
 
-            {/* Patient Info */}
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {[
-                ['Age', String(patient.age)],
+            {/* Basic patient info */}
+            <DetailSection
+              title="Basic Information"
+              icon="👤"
+              defaultOpen={true}
+              rows={[
+                ['Full Name', patient.fullName],
+                ['Age', patient.age],
                 ['Gender', patient.gender],
+                ['Date of Birth', patient.dateOfBirth],
                 ['Phone', patient.phone],
-                ['Email', patient.email || '—'],
+                ['Home Phone', patient.homePhone],
+                ['Email', patient.email],
                 ['District', patient.district],
-                ...(patient.homePhone ? [['Home Phone', patient.homePhone]] : []),
-              ].map(([label, val]) => (
-                <div key={label} className="border border-[#E5E7EB] rounded-[9px] p-2">
-                  <div className="text-[#9CA3AF] text-xs">{label}</div>
-                  <div className="text-[#374151] font-medium">{val}</div>
-                </div>
-              ))}
-            </div>
+                ['Marital Status', patient.maritalStatus],
+              ]}
+            />
 
             {/* Address */}
-            {(patient.addressHouse || patient.addressPO || patient.city || patient.state || patient.zipcode || patient.country) && (
-              <div>
-                <div className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2">Address</div>
-                <div className="border border-[#E5E7EB] rounded-[9px] p-3 text-sm space-y-1">
-                  {patient.addressHouse && <div className="text-[#374151]">{patient.addressHouse}</div>}
-                  {patient.addressPO && <div className="text-[#6B7280]">PO: {patient.addressPO}</div>}
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[#6B7280]">
-                    {patient.city && <span>{patient.city}</span>}
-                    {patient.district && <span>{patient.district}</span>}
-                    {patient.state && <span>{patient.state}</span>}
-                    {patient.zipcode && <span>- {patient.zipcode}</span>}
-                  </div>
-                  {patient.country && <div className="text-[#6B7280]">{patient.country}</div>}
-                </div>
-              </div>
-            )}
+            <DetailSection
+              title="Address"
+              icon="🏠"
+              rows={[
+                ['House / Street', patient.addressHouse || patient.address],
+                ['Post Office', patient.addressPO],
+                ['City', patient.city],
+                ['State', patient.state],
+                ['Pincode', patient.zipcode],
+                ['Country', patient.country],
+              ]}
+            />
 
-            {patient.injuryDesc && (
-              <div>
-                <div className="text-xs text-[#9CA3AF] mb-1">Injury Description</div>
-                <div className="text-sm text-[#374151] p-3 bg-gray-50 rounded-[9px]">{patient.injuryDesc}</div>
-              </div>
-            )}
+            {/* Family */}
+            <DetailSection
+              title="Family Details"
+              icon="👨‍👩‍👧"
+              rows={[
+                ["Father's Name", patient.fatherName],
+                ["Mother's Name", patient.motherName],
+                ["Spouse's Name", patient.spouseName],
+                ["Spouse's Occupation", patient.spouseOccupation],
+                ["Spouse's Phone", patient.spousePhone],
+                ['Years Married', patient.yearsMarried],
+                ['Number of Children', patient.childrenCount],
+                ["Parents' Phone", patient.parentsPhone],
+              ]}
+            />
+
+            {/* Occupation & Financial */}
+            <DetailSection
+              title="Occupation & Financial"
+              icon="💼"
+              rows={[
+                ['Occupation', patient.occupation],
+                ['Monthly Household Income', patient.householdIncomeMonthly],
+                ['Household Assets', patient.householdAssets],
+                ['Total Asset Value', patient.totalHouseholdAssetValue],
+                ['Owns House', patient.ownsHouse],
+                ['Height', patient.height],
+                ['Weight', patient.weight],
+              ]}
+            />
+
+            {/* Referral */}
+            <DetailSection
+              title="Referral"
+              icon="📣"
+              rows={[
+                ['How Did You Know', patient.howDidYouKnow],
+                ['Referred By', patient.referredBy],
+              ]}
+            />
+
+            {/* Limb Loss / Medical */}
+            <DetailSection
+              title="Limb Loss & Medical History"
+              icon="🏥"
+              rows={[
+                ['Date Lost Limb', patient.dateLostLimb],
+                ['How Lost Leg', patient.howLostLeg],
+                ['Years Lost', patient.yearsLost],
+                ['Number of Legs Lost', patient.legsLostCount],
+                ['Right Leg', patient.rightLeg],
+                ['Left Leg', patient.leftLeg],
+                ['Limb Loss Details', patient.limbLossDetails],
+                ['Injury Description', patient.injuryDesc],
+                ['Hospital Name', patient.hospitalName],
+                ['Doctor Name', patient.doctorName],
+                ['Hospital Address', patient.hospitalAddress],
+                ['Hospitalized From', patient.hospitalizedFrom],
+                ['Hospitalized To', patient.hospitalizedTo],
+              ]}
+            />
+
+            {/* Prosthetic */}
+            <DetailSection
+              title="Prosthetic History"
+              icon="🦿"
+              rows={[
+                ['Used Prosthetic Before', patient.usedProsthetic],
+                ['Years Used', patient.prostheticYears],
+                ['Why New Prosthetic', patient.whyNewProsthetic],
+                ['Previous Source', patient.prostheticSource],
+                ['Manufacturer', patient.prostheticManufacturer],
+              ]}
+            />
 
             {/* Documents */}
             <div>
-              <div className="text-sm font-medium text-[#374151] mb-2">Documents</div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="text-sm font-semibold text-[#374151] mb-2 flex items-center gap-2">
+                <span>📎</span> Documents
+              </div>
+              <div className="grid grid-cols-3 gap-2">
                 {docLabels.map(({ key, label }) => {
                   const url = patient.documents[key];
                   return (
                     <div key={key} className={`border rounded-[9px] p-2 text-sm ${url ? 'border-[#0369a1] bg-[#f0f9ff]' : 'border-[#E5E7EB] bg-gray-50'}`}>
-                      <div className="text-xs text-[#9CA3AF]">{label}</div>
+                      <div className="text-[10px] text-[#9CA3AF] leading-tight mb-1">{label}</div>
                       {url ? (
                         <img
                           src={url}
                           alt={label}
-                          className="w-full h-20 object-cover rounded mt-1 cursor-pointer hover:opacity-80"
+                          className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80"
                           onClick={() => setLightbox(url)}
                         />
                       ) : (
-                        <div className="text-xs text-[#9CA3AF] mt-1">Not uploaded</div>
+                        <div className="text-xs text-[#9CA3AF] h-20 flex items-center justify-center">Not uploaded</div>
                       )}
                     </div>
                   );
@@ -160,7 +293,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
             </div>
 
             {/* Status update */}
-            <div>
+            <div className="border-t border-[#E5E7EB] pt-4">
               <label className="block text-sm font-medium text-[#374151] mb-1">Update Status</label>
               <select
                 value={status}
