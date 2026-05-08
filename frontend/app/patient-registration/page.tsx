@@ -124,7 +124,7 @@ function PatientForm() {
   const [docErr, setDocErr] = useState('');
 
   // Detail fields
-  const [d, setD] = useState<Record<string, string>>({});
+  const [d, setD] = useState<Record<string, string>>({ state: 'Kerala', country: 'India' });
   const sd = (k: string, v: string) => setD(x => ({ ...x, [k]: v }));
 
   const goTo = (i: number) => { setSec(i); window.scrollTo({ top: 0, behavior: 'smooth' }); };
@@ -347,6 +347,96 @@ function PatientForm() {
       // ─ 2: Contact ──────────────────────────────────────────────────────────
       case 2: return (
         <>
+          {/* Datalists for state + country comboboxes */}
+          <datalist id="kerala-districts">
+            <option value="Alappuzha" />
+            <option value="Ernakulam" />
+            <option value="Idukki" />
+            <option value="Kannur" />
+            <option value="Kasaragod" />
+            <option value="Kollam" />
+            <option value="Kottayam" />
+            <option value="Kozhikode" />
+            <option value="Malappuram" />
+            <option value="Palakkad" />
+            <option value="Pathanamthitta" />
+            <option value="Thiruvananthapuram" />
+            <option value="Thrissur" />
+            <option value="Wayanad" />
+          </datalist>
+          <datalist id="india-states">
+            <option value="Andhra Pradesh" />
+            <option value="Arunachal Pradesh" />
+            <option value="Assam" />
+            <option value="Bihar" />
+            <option value="Chhattisgarh" />
+            <option value="Goa" />
+            <option value="Gujarat" />
+            <option value="Haryana" />
+            <option value="Himachal Pradesh" />
+            <option value="Jharkhand" />
+            <option value="Karnataka" />
+            <option value="Kerala" />
+            <option value="Madhya Pradesh" />
+            <option value="Maharashtra" />
+            <option value="Manipur" />
+            <option value="Meghalaya" />
+            <option value="Mizoram" />
+            <option value="Nagaland" />
+            <option value="Odisha" />
+            <option value="Punjab" />
+            <option value="Rajasthan" />
+            <option value="Sikkim" />
+            <option value="Tamil Nadu" />
+            <option value="Telangana" />
+            <option value="Tripura" />
+            <option value="Uttar Pradesh" />
+            <option value="Uttarakhand" />
+            <option value="West Bengal" />
+            <option value="Andaman and Nicobar Islands" />
+            <option value="Chandigarh" />
+            <option value="Dadra and Nagar Haveli and Daman and Diu" />
+            <option value="Delhi" />
+            <option value="Jammu and Kashmir" />
+            <option value="Ladakh" />
+            <option value="Lakshadweep" />
+            <option value="Puducherry" />
+          </datalist>
+          <datalist id="countries">
+            <option value="India" />
+            <option value="Afghanistan" />
+            <option value="Australia" />
+            <option value="Bangladesh" />
+            <option value="Bhutan" />
+            <option value="Canada" />
+            <option value="China" />
+            <option value="France" />
+            <option value="Germany" />
+            <option value="Indonesia" />
+            <option value="Iran" />
+            <option value="Iraq" />
+            <option value="Italy" />
+            <option value="Japan" />
+            <option value="Malaysia" />
+            <option value="Maldives" />
+            <option value="Myanmar" />
+            <option value="Nepal" />
+            <option value="New Zealand" />
+            <option value="Pakistan" />
+            <option value="Philippines" />
+            <option value="Qatar" />
+            <option value="Russia" />
+            <option value="Saudi Arabia" />
+            <option value="Singapore" />
+            <option value="South Korea" />
+            <option value="Sri Lanka" />
+            <option value="Thailand" />
+            <option value="Turkey" />
+            <option value="United Arab Emirates" />
+            <option value="United Kingdom" />
+            <option value="United States" />
+          </datalist>
+
           <div style={{ marginBottom: 16 }}>
             <F label="Address / House Name" sub="വീടിന്റെ പേര്">
               <input style={inp} placeholder="House name or number" value={d.addressHouse || ''} onChange={e => sd('addressHouse', e.target.value)} />
@@ -355,10 +445,34 @@ function PatientForm() {
           <div style={{ ...g2, marginBottom: 16 }}>
             <F label="PO / Post Office" sub="പോസ്റ്റ് ഓഫീസ്"><input style={inp} placeholder="Post office" value={d.addressPO || ''} onChange={e => sd('addressPO', e.target.value)} /></F>
             <F label="City / Town" sub="നഗരം"><input style={inp} placeholder="City or town" value={d.city || ''} onChange={e => sd('city', e.target.value)} /></F>
-            <F label="State" sub="സംസ്ഥാനം"><input style={inp} placeholder="State" value={d.state || 'Kerala'} onChange={e => sd('state', e.target.value)} /></F>
-            <F label="District" sub="ജില്ല"><input style={inp} placeholder="District" value={d.district || ''} onChange={e => sd('district', e.target.value)} /></F>
+            <F label="State" sub="സംസ്ഥാനം">
+              <input
+                style={inp}
+                list="india-states"
+                placeholder="Select or type state"
+                value={d.state ?? 'Kerala'}
+                onChange={e => sd('state', e.target.value)}
+              />
+            </F>
+            <F label="District" sub="ജില്ല">
+              <input
+                style={inp}
+                list="kerala-districts"
+                placeholder="Select or type district"
+                value={d.district || ''}
+                onChange={e => sd('district', e.target.value)}
+              />
+            </F>
             <F label="Zipcode / PIN" sub="പിൻ കോഡ്"><input style={inp} placeholder="6-digit PIN" value={d.zipcode || ''} onChange={e => sd('zipcode', e.target.value)} /></F>
-            <F label="Country" sub="രാജ്യം"><input style={inp} placeholder="Country" value={d.country || 'India'} onChange={e => sd('country', e.target.value)} /></F>
+            <F label="Country" sub="രാജ്യം">
+              <input
+                style={inp}
+                list="countries"
+                placeholder="Select or type country"
+                value={d.country ?? 'India'}
+                onChange={e => sd('country', e.target.value)}
+              />
+            </F>
           </div>
           <div style={divider} />
           <div style={g3}>

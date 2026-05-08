@@ -100,6 +100,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
                 ['Phone', patient.phone],
                 ['Email', patient.email || '—'],
                 ['District', patient.district],
+                ...(patient.homePhone ? [['Home Phone', patient.homePhone]] : []),
               ].map(([label, val]) => (
                 <div key={label} className="border border-[#E5E7EB] rounded-[9px] p-2">
                   <div className="text-[#9CA3AF] text-xs">{label}</div>
@@ -107,6 +108,24 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
                 </div>
               ))}
             </div>
+
+            {/* Address */}
+            {(patient.addressHouse || patient.addressPO || patient.city || patient.state || patient.zipcode || patient.country) && (
+              <div>
+                <div className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2">Address</div>
+                <div className="border border-[#E5E7EB] rounded-[9px] p-3 text-sm space-y-1">
+                  {patient.addressHouse && <div className="text-[#374151]">{patient.addressHouse}</div>}
+                  {patient.addressPO && <div className="text-[#6B7280]">PO: {patient.addressPO}</div>}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[#6B7280]">
+                    {patient.city && <span>{patient.city}</span>}
+                    {patient.district && <span>{patient.district}</span>}
+                    {patient.state && <span>{patient.state}</span>}
+                    {patient.zipcode && <span>- {patient.zipcode}</span>}
+                  </div>
+                  {patient.country && <div className="text-[#6B7280]">{patient.country}</div>}
+                </div>
+              </div>
+            )}
 
             {patient.injuryDesc && (
               <div>
