@@ -1,5 +1,5 @@
 'use client';
-import { useState, CSSProperties, Suspense } from 'react';
+import { useState, useRef, useEffect, CSSProperties, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -41,6 +41,61 @@ const divider: CSSProperties = { height: 1, background: C.border, margin: '22px 
 const cardBox: CSSProperties = {
   background: 'white', borderRadius: 20, border: `1px solid ${C.border}`, marginBottom: 20,
 };
+
+// ─── Combobox (styled searchable dropdown) ────────────────────────────────────
+function Combobox({ options, value, onChange, placeholder }: {
+  options: string[]; value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  const filtered = value ? options.filter(o => o.toLowerCase().includes(value.toLowerCase())) : options;
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <input
+        style={{ ...inp, paddingRight: 40 }}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setOpen(true)}
+        autoComplete="off"
+      />
+      <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: C.textMuted, fontSize: 13, lineHeight: 1 }}>▾</span>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
+          background: 'white', border: `1.5px solid ${C.borderStrong}`, borderRadius: 12,
+          maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 28px rgba(3,105,161,0.13)',
+        }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '12px 18px', fontSize: 14, color: C.textMuted, fontStyle: 'italic' }}>No match — your text will be saved</div>
+          ) : filtered.map(opt => (
+            <div
+              key={opt}
+              onMouseDown={() => { onChange(opt); setOpen(false); }}
+              style={{
+                padding: '11px 18px', cursor: 'pointer', fontSize: 15, color: C.text,
+                background: value === opt ? C.light : 'white',
+                fontFamily: "var(--font-dm,'DM Sans',sans-serif)",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = C.light; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = value === opt ? C.light : 'white'; }}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function F({ label, sub, err, children }: { label: string; sub?: string; err?: string; children: React.ReactNode }) {
   return (
@@ -358,96 +413,6 @@ function PatientForm() {
       // ─ 2: Contact ──────────────────────────────────────────────────────────
       case 2: return (
         <>
-          {/* Datalists for state + country comboboxes */}
-          <datalist id="kerala-districts">
-            <option value="Alappuzha" />
-            <option value="Ernakulam" />
-            <option value="Idukki" />
-            <option value="Kannur" />
-            <option value="Kasaragod" />
-            <option value="Kollam" />
-            <option value="Kottayam" />
-            <option value="Kozhikode" />
-            <option value="Malappuram" />
-            <option value="Palakkad" />
-            <option value="Pathanamthitta" />
-            <option value="Thiruvananthapuram" />
-            <option value="Thrissur" />
-            <option value="Wayanad" />
-          </datalist>
-          <datalist id="india-states">
-            <option value="Andhra Pradesh" />
-            <option value="Arunachal Pradesh" />
-            <option value="Assam" />
-            <option value="Bihar" />
-            <option value="Chhattisgarh" />
-            <option value="Goa" />
-            <option value="Gujarat" />
-            <option value="Haryana" />
-            <option value="Himachal Pradesh" />
-            <option value="Jharkhand" />
-            <option value="Karnataka" />
-            <option value="Kerala" />
-            <option value="Madhya Pradesh" />
-            <option value="Maharashtra" />
-            <option value="Manipur" />
-            <option value="Meghalaya" />
-            <option value="Mizoram" />
-            <option value="Nagaland" />
-            <option value="Odisha" />
-            <option value="Punjab" />
-            <option value="Rajasthan" />
-            <option value="Sikkim" />
-            <option value="Tamil Nadu" />
-            <option value="Telangana" />
-            <option value="Tripura" />
-            <option value="Uttar Pradesh" />
-            <option value="Uttarakhand" />
-            <option value="West Bengal" />
-            <option value="Andaman and Nicobar Islands" />
-            <option value="Chandigarh" />
-            <option value="Dadra and Nagar Haveli and Daman and Diu" />
-            <option value="Delhi" />
-            <option value="Jammu and Kashmir" />
-            <option value="Ladakh" />
-            <option value="Lakshadweep" />
-            <option value="Puducherry" />
-          </datalist>
-          <datalist id="countries">
-            <option value="India" />
-            <option value="Afghanistan" />
-            <option value="Australia" />
-            <option value="Bangladesh" />
-            <option value="Bhutan" />
-            <option value="Canada" />
-            <option value="China" />
-            <option value="France" />
-            <option value="Germany" />
-            <option value="Indonesia" />
-            <option value="Iran" />
-            <option value="Iraq" />
-            <option value="Italy" />
-            <option value="Japan" />
-            <option value="Malaysia" />
-            <option value="Maldives" />
-            <option value="Myanmar" />
-            <option value="Nepal" />
-            <option value="New Zealand" />
-            <option value="Pakistan" />
-            <option value="Philippines" />
-            <option value="Qatar" />
-            <option value="Russia" />
-            <option value="Saudi Arabia" />
-            <option value="Singapore" />
-            <option value="South Korea" />
-            <option value="Sri Lanka" />
-            <option value="Thailand" />
-            <option value="Turkey" />
-            <option value="United Arab Emirates" />
-            <option value="United Kingdom" />
-            <option value="United States" />
-          </datalist>
-
           <div style={{ marginBottom: 16 }}>
             <F label="Address / House Name" sub="വീടിന്റെ പേര്">
               <input style={inp} placeholder="House name or number" value={d.addressHouse || ''} onChange={e => sd('addressHouse', e.target.value)} />
@@ -457,31 +422,28 @@ function PatientForm() {
             <F label="PO / Post Office" sub="പോസ്റ്റ് ഓഫീസ്"><input style={inp} placeholder="Post office" value={d.addressPO || ''} onChange={e => sd('addressPO', e.target.value)} /></F>
             <F label="City / Town" sub="നഗരം"><input style={inp} placeholder="City or town" value={d.city || ''} onChange={e => sd('city', e.target.value)} /></F>
             <F label="State" sub="സംസ്ഥാനം">
-              <input
-                style={inp}
-                list="india-states"
+              <Combobox
                 placeholder="Select or type state"
-                value={d.state ?? 'Kerala'}
-                onChange={e => sd('state', e.target.value)}
+                value={d.state || ''}
+                onChange={v => sd('state', v)}
+                options={['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Andaman and Nicobar Islands','Chandigarh','Dadra and Nagar Haveli and Daman and Diu','Delhi','Jammu and Kashmir','Ladakh','Lakshadweep','Puducherry']}
               />
             </F>
             <F label="District" sub="ജില്ല">
-              <input
-                style={inp}
-                list="kerala-districts"
+              <Combobox
                 placeholder="Select or type district"
                 value={d.district || ''}
-                onChange={e => sd('district', e.target.value)}
+                onChange={v => sd('district', v)}
+                options={['Alappuzha','Ernakulam','Idukki','Kannur','Kasaragod','Kollam','Kottayam','Kozhikode','Malappuram','Palakkad','Pathanamthitta','Thiruvananthapuram','Thrissur','Wayanad']}
               />
             </F>
             <F label="Zipcode / PIN" sub="പിൻ കോഡ്"><input style={inp} placeholder="6-digit PIN" value={d.zipcode || ''} onChange={e => sd('zipcode', e.target.value)} /></F>
             <F label="Country" sub="രാജ്യം">
-              <input
-                style={inp}
-                list="countries"
+              <Combobox
                 placeholder="Select or type country"
-                value={d.country ?? 'India'}
-                onChange={e => sd('country', e.target.value)}
+                value={d.country || ''}
+                onChange={v => sd('country', v)}
+                options={['India','Afghanistan','Australia','Bangladesh','Bhutan','Canada','China','France','Germany','Indonesia','Iran','Iraq','Italy','Japan','Malaysia','Maldives','Myanmar','Nepal','New Zealand','Pakistan','Philippines','Qatar','Russia','Saudi Arabia','Singapore','South Korea','Sri Lanka','Thailand','Turkey','United Arab Emirates','United Kingdom','United States']}
               />
             </F>
           </div>
