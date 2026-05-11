@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-sm w-full">
         <div className="text-center mb-6">
-          <img src="/logo.webp" alt="Life and Limb" className="w-16 h-16 object-contain mx-auto mb-2" />
+          <img src="/logo.webp" alt="Life and Limb" className="w-28 h-28 object-contain mx-auto mb-2" />
           <h1 className="text-2xl font-bold text-[#0369a1]">Life and Limbs</h1>
           <p className="text-sm text-[#9CA3AF] mt-1">Admin Portal</p>
         </div>

@@ -863,7 +863,7 @@ function PatientForm() {
               രോഗി രജിസ്ട്രേഷൻ — Section {sec + 1} of {SECTIONS.length}
             </div>
           </div>
-          <img src="/logo.webp" alt="Life and Limbs" style={{ height: 54, width: 'auto', objectFit: 'contain' }} />
+          <img src="/logo.webp" alt="Life and Limbs" style={{ height: 80, width: 'auto', objectFit: 'contain' }} />
         </div>
         {/* Stepper */}
         <div style={{ paddingBottom: 28 }}>
