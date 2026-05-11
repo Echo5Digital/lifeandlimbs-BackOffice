@@ -14,21 +14,16 @@ interface Props {
   patient: Patient;
   onClose: () => void;
   onStatusUpdated: (id: string, status: PatientStatus) => void;
+  onDeleted: (id: string) => void;
 }
 
 const statusOptions: { value: PatientStatus; label: string }[] = [
-  { value: 'new',                   label: 'New Registration' },
-  { value: 'ready_for_evaluation',  label: 'Ready For Evaluation' },
-  { value: 'scheduling',            label: 'Scheduling' },
-  { value: 'evaluated_pending',     label: 'Evaluated-Pending Approval' },
-  { value: 'evaluated',             label: 'Evaluated' },
-  { value: 'approved',              label: 'Approved' },
-  { value: 'completed',             label: 'Completed' },
-  { value: 'follow_up',             label: 'Follow-up' },
-  { value: 'repairs',               label: 'Repairs' },
-  { value: 'on_hold',               label: 'On Hold' },
-  { value: 'rejected',              label: 'Rejected' },
-  { value: 'incomplete',            label: 'Application Incomplete' },
+  { value: 'new',                  label: 'New Registration' },
+  { value: 'ready_for_evaluation', label: 'Ready For Evaluation' },
+  { value: 'evaluated',            label: 'Evaluated' },
+  { value: 'approved',             label: 'Approved' },
+  { value: 'on_hold',              label: 'On Hold' },
+  { value: 'rejected',             label: 'Rejected' },
 ];
 
 const docLabels: { key: keyof Patient['documents']; label: string }[] = [
@@ -89,11 +84,13 @@ function DetailSection({
   );
 }
 
-export default function PatientModal({ patient, onClose, onStatusUpdated }: Props) {
-  const [status, setStatus]     = useState<PatientStatus>(patient.status);
-  const [saving, setSaving]     = useState(false);
-  const [lightbox, setLightbox] = useState<string | null>(null);
-  const [saveMsg, setSaveMsg]   = useState('');
+export default function PatientModal({ patient, onClose, onStatusUpdated, onDeleted }: Props) {
+  const [status, setStatus]         = useState<PatientStatus>(patient.status);
+  const [saving, setSaving]         = useState(false);
+  const [lightbox, setLightbox]     = useState<string | null>(null);
+  const [saveMsg, setSaveMsg]       = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting]     = useState(false);
 
   const { date, time } = formatIST(patient.registeredAt);
 
@@ -112,6 +109,23 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
       setSaveMsg('Failed to update status.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/patients/${patient._id}`,
+        { headers: authHeaders(), withCredentials: true }
+      );
+      onDeleted(patient._id);
+      onClose();
+    } catch {
+      setSaveMsg('Failed to delete patient.');
+      setConfirmDelete(false);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -292,6 +306,28 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
               </div>
             </div>
 
+            {/* Status history */}
+            {patient.statusHistory && patient.statusHistory.length > 0 && (
+              <div className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
+                <div className="px-3 py-2.5 bg-gray-50 text-sm font-semibold text-[#374151] flex items-center gap-2">
+                  <span>🕒</span> Status History
+                </div>
+                <div className="divide-y divide-[#E5E7EB]">
+                  {[...patient.statusHistory].reverse().map((h, i) => {
+                    const d = new Date(h.changedAt);
+                    const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const timeStr = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    return (
+                      <div key={i} className="flex items-center justify-between px-3 py-2 bg-white">
+                        <span className="text-sm text-[#374151] font-medium capitalize">{h.status.replace(/_/g, ' ')}</span>
+                        <span className="text-xs text-[#9CA3AF]">{dateStr} · {timeStr}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Status update */}
             <div className="border-t border-[#E5E7EB] pt-4">
               <label className="block text-sm font-medium text-[#374151] mb-1">Update Status</label>
@@ -314,11 +350,45 @@ export default function PatientModal({ patient, onClose, onStatusUpdated }: Prop
 
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || deleting}
               className="w-full py-3 bg-[#0369a1] text-white rounded-[9px] font-semibold hover:bg-[#025f8f] disabled:opacity-60 transition-colors"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
+
+            {/* Delete section */}
+            <div className="border-t border-[#E5E7EB] pt-4">
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={deleting}
+                  className="w-full py-3 bg-white text-red-600 border border-red-300 rounded-[9px] font-semibold hover:bg-red-50 disabled:opacity-60 transition-colors"
+                >
+                  Delete Patient Record
+                </button>
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-[9px] p-4 space-y-3">
+                  <p className="text-sm font-semibold text-red-700">Are you sure you want to permanently delete this patient record?</p>
+                  <p className="text-xs text-red-500">This cannot be undone. All data for <strong>{patient.fullName}</strong> ({patient.registrationId}) will be removed.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="flex-1 py-2.5 bg-red-600 text-white rounded-[9px] font-semibold hover:bg-red-700 disabled:opacity-60 transition-colors text-sm"
+                    >
+                      {deleting ? 'Deleting...' : 'Yes, Delete'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      disabled={deleting}
+                      className="flex-1 py-2.5 bg-white text-[#374151] border border-[#E5E7EB] rounded-[9px] font-semibold hover:bg-gray-50 disabled:opacity-60 transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -45,7 +45,7 @@ const registerPatient = async (req, res) => {
 // GET /api/admin/patients
 const getPatients = async (req, res) => {
   try {
-    const { status, district, search, page = 1, limit = 20 } = req.query;
+    const { status, district, search, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
     const filter = {};
 
     if (status && status !== 'all')  filter.status   = status;
@@ -55,6 +55,25 @@ const getPatients = async (req, res) => {
         { fullName: { $regex: search, $options: 'i' } },
         { phone:    { $regex: search, $options: 'i' } },
       ];
+    }
+
+    // Date range filter
+    if (dateFrom || dateTo) {
+      const from = dateFrom ? new Date(dateFrom) : new Date('2000-01-01');
+      const to   = dateTo   ? new Date(new Date(dateTo).setHours(23, 59, 59, 999)) : new Date();
+
+      if (status && status !== 'all') {
+        // Filter by when this specific status was set in statusHistory
+        filter.statusHistory = {
+          $elemMatch: {
+            status:    status,
+            changedAt: { $gte: from, $lte: to },
+          },
+        };
+      } else {
+        // No status filter — filter by registration date
+        filter.registeredAt = { $gte: from, $lte: to };
+      }
     }
 
     const skip  = (Number(page) - 1) * Number(limit);
@@ -116,9 +135,7 @@ const updatePatientStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const allowed = [
-      'new', 'ready_for_evaluation', 'scheduling', 'evaluated_pending',
-      'evaluated', 'rejected', 'approved', 'completed',
-      'follow_up', 'repairs', 'on_hold', 'incomplete',
+      'new', 'ready_for_evaluation', 'evaluated', 'approved', 'on_hold', 'rejected',
     ];
     if (!allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status value.' });
@@ -126,7 +143,10 @@ const updatePatientStatus = async (req, res) => {
 
     const patient = await Patient.findByIdAndUpdate(
       req.params.id,
-      { status },
+      {
+        status,
+        $push: { statusHistory: { status, changedAt: new Date() } },
+      },
       { new: true }
     );
     if (!patient) {
@@ -144,6 +164,26 @@ const updatePatientStatus = async (req, res) => {
 const updatePatientDetails = async (req, res) => {
   try {
     const { registrationId } = req.params;
+
+    // Duplicate check: block if another patient has the same fullName + dateOfBirth + zipcode
+    const { firstName, lastName, dateOfBirth, zipcode } = req.body;
+    if (firstName && dateOfBirth && zipcode) {
+      const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+      const duplicate = await Patient.findOne({
+        fullName:    { $regex: new RegExp(`^${fullName}$`, 'i') },
+        dateOfBirth: dateOfBirth,
+        zipcode:     zipcode,
+        registrationId: { $ne: registrationId }, // exclude the current record
+      }).lean();
+      if (duplicate) {
+        return res.status(409).json({
+          success: false,
+          duplicate: true,
+          message: `A patient named "${fullName}" with the same date of birth and PIN code is already registered (${duplicate.registrationId}).`,
+        });
+      }
+    }
+
     const allowed = [
       'firstName','lastName','dateOfBirth','maritalStatus',
       'addressHouse','addressPO','city','state','zipcode','country','homePhone',
@@ -176,4 +216,18 @@ const updatePatientDetails = async (req, res) => {
   }
 };
 
-module.exports = { registerPatient, getPatients, getPatientById, updatePatientStatus, updatePatientDetails };
+// DELETE /api/admin/patients/:id
+const deletePatient = async (req, res) => {
+  try {
+    const patient = await Patient.findByIdAndDelete(req.params.id);
+    if (!patient) {
+      return res.status(404).json({ success: false, message: 'Patient not found.' });
+    }
+    res.json({ success: true, message: `Patient ${patient.registrationId} deleted.` });
+  } catch (err) {
+    console.error('deletePatient error:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete patient.' });
+  }
+};
+
+module.exports = { registerPatient, getPatients, getPatientById, updatePatientStatus, updatePatientDetails, deletePatient };

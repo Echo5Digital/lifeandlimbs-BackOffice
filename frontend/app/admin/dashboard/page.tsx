@@ -16,10 +16,12 @@ function authHeaders() {
 
 // Key summary cards shown at the top of the dashboard
 const statCards: { key: PatientStatus; label: string; color: string; bg: string; border: string }[] = [
-  { key: 'new',                  label: 'New',              color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
-  { key: 'ready_for_evaluation', label: 'Ready to Evaluate',color: 'text-[#6D28D9]', bg: 'bg-[#F5F3FF]', border: 'border-[#C4B5FD]' },
-  { key: 'approved',             label: 'Approved',         color: 'text-[#0369a1]', bg: 'bg-[#f0f9ff]', border: 'border-[#86EFAC]' },
-  { key: 'completed',            label: 'Completed',        color: 'text-[#064E3B]', bg: 'bg-[#D1FAE5]', border: 'border-[#6EE7B7]' },
+  { key: 'new',                  label: 'New',               color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
+  { key: 'ready_for_evaluation', label: 'Ready to Evaluate', color: 'text-[#6D28D9]', bg: 'bg-[#F5F3FF]', border: 'border-[#C4B5FD]' },
+  { key: 'evaluated',            label: 'Evaluated',         color: 'text-[#065F46]', bg: 'bg-[#ECFDF5]', border: 'border-[#6EE7B7]' },
+  { key: 'approved',             label: 'Approved',          color: 'text-[#0369a1]', bg: 'bg-[#f0f9ff]', border: 'border-[#BAE6FD]' },
+  { key: 'on_hold',              label: 'On Hold',           color: 'text-[#4B5563]', bg: 'bg-[#F3F4F6]', border: 'border-[#D1D5DB]' },
+  { key: 'rejected',             label: 'Rejected',          color: 'text-[#991B1B]', bg: 'bg-[#FEF2F2]', border: 'border-[#FECACA]' },
 ];
 
 export default function AdminDashboard() {
@@ -31,9 +33,11 @@ export default function AdminDashboard() {
   const [loading,   setLoading]   = useState(true);
 
   // Filters
-  const [filterStatus,   setFilterStatus]   = useState('all');
+  const [filterStatus,   setFilterStatus]   = useState('new');
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [search,         setSearch]         = useState('');
+  const [dateFrom,       setDateFrom]       = useState('');
+  const [dateTo,         setDateTo]         = useState('');
   const [page,           setPage]           = useState(1);
   const [totalPages,     setTotalPages]     = useState(1);
 
@@ -49,6 +53,8 @@ export default function AdminDashboard() {
           search,
           page,
           limit: 20,
+          ...(dateFrom && { dateFrom }),
+          ...(dateTo   && { dateTo }),
         },
         headers: authHeaders(),
         withCredentials: true,
@@ -65,7 +71,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, filterDistrict, search, page, router]);
+  }, [filterStatus, filterDistrict, search, dateFrom, dateTo, page, router]);
 
   useEffect(() => {
     fetchPatients();
@@ -76,6 +82,11 @@ export default function AdminDashboard() {
       prev.map((p) => (p._id === id ? { ...p, status } : p))
     );
     // Refresh stats
+    fetchPatients();
+  };
+
+  const handleDeleted = (id: string) => {
+    setPatients((prev) => prev.filter((p) => p._id !== id));
     fetchPatients();
   };
 
@@ -135,16 +146,10 @@ export default function AdminDashboard() {
             <option value="all">All Status</option>
             <option value="new">New Registration</option>
             <option value="ready_for_evaluation">Ready For Evaluation</option>
-            <option value="scheduling">Scheduling</option>
-            <option value="evaluated_pending">Evaluated-Pending Approval</option>
             <option value="evaluated">Evaluated</option>
             <option value="approved">Approved</option>
-            <option value="completed">Completed</option>
-            <option value="follow_up">Follow-up</option>
-            <option value="repairs">Repairs</option>
             <option value="on_hold">On Hold</option>
             <option value="rejected">Rejected</option>
-            <option value="incomplete">Application Incomplete</option>
           </select>
 
           <select
@@ -165,13 +170,41 @@ export default function AdminDashboard() {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1] flex-1 min-w-[180px]"
           />
+
+          {/* Date range — filters by status change date when a status is selected, else by registration date */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#9CA3AF] whitespace-nowrap">
+              {filterStatus !== 'all' ? 'Status date:' : 'Reg. date:'}
+            </span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+              className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+            />
+            <span className="text-xs text-[#9CA3AF]">to</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+              className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+            />
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); setPage(1); }}
+                className="h-11 px-3 text-xs text-[#9CA3AF] hover:text-[#374151] border border-[#E5E7EB] rounded-[9px] bg-white min-h-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Table */}
         {loading ? (
           <div className="text-center py-12 text-[#9CA3AF]">Loading patients...</div>
         ) : (
-          <AdminTable patients={patients} onView={setSelectedPatient} />
+          <AdminTable patients={patients} onView={setSelectedPatient} onDeleted={handleDeleted} />
         )}
 
         {/* Pagination */}
@@ -202,6 +235,7 @@ export default function AdminDashboard() {
           patient={selectedPatient}
           onClose={() => setSelectedPatient(null)}
           onStatusUpdated={handleStatusUpdated}
+          onDeleted={handleDeleted}
         />
       )}
     </main>

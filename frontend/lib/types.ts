@@ -3,16 +3,10 @@ export type Gender = 'male' | 'female' | 'other';
 export type PatientStatus =
   | 'new'
   | 'ready_for_evaluation'
-  | 'scheduling'
-  | 'evaluated_pending'
   | 'evaluated'
-  | 'rejected'
   | 'approved'
-  | 'completed'
-  | 'follow_up'
-  | 'repairs'
   | 'on_hold'
-  | 'incomplete';
+  | 'rejected';
 
 export interface Patient {
   _id: string;
@@ -51,6 +45,7 @@ export interface Patient {
   usedProsthetic?: boolean; prostheticYears?: number;
   whyNewProsthetic?: string; prostheticSource?: string; prostheticManufacturer?: string;
   detailsSubmittedAt?: string;
+  statusHistory?: { status: string; changedAt: string }[];
 }
 
 // Stats are dynamic — any PatientStatus key may appear

@@ -190,7 +190,8 @@ function PatientForm() {
 
   // Detail fields
   const [d, setD] = useState<Record<string, string>>({ state: 'Kerala', country: 'India' });
-  const sd = (k: string, v: string) => setD(x => ({ ...x, [k]: v }));
+  const [dErr, setDErr] = useState<Record<string, string>>({});
+  const sd = (k: string, v: string) => { setD(x => ({ ...x, [k]: v })); if (dErr[k]) setDErr(e => ({ ...e, [k]: '' })); };
 
   const goTo = (i: number) => { setSec(i); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
@@ -222,8 +223,10 @@ function PatientForm() {
   const validatePersonal = () => {
     const e: Record<string, string> = {};
     if (!p.firstName.trim()) e.firstName = 'First name is required · പേര് നൽകണം';
+    if (!p.dateOfBirth)      e.dateOfBirth = 'Date of birth is required · ജനന തീയതി നൽകണം';
     if (!p.age.trim() || isNaN(Number(p.age)) || Number(p.age) <= 0) e.age = 'Valid age required · ശരിയായ പ്രായം നൽകണം';
     if (!p.gender)           e.gender  = 'Select gender · ലിംഗം തിരഞ്ഞെടുക്കുക';
+    if (!p.maritalStatus)    e.maritalStatus = 'Select marital status · വിവാഹാവസ്ഥ തിരഞ്ഞെടുക്കുക';
     if (!p.phone.trim())     e.phone   = 'Phone is required · ഫോൺ നൽകണം';
     else if (!/^\d{10}$/.test(p.phone.replace(/\s/g, ''))) e.phone = 'Enter 10-digit number';
     setPErr(e);
@@ -238,9 +241,57 @@ function PatientForm() {
     return true;
   };
 
+  const validateSection = (s: number): boolean => {
+    const e: Record<string, string> = {};
+    // Section 2: Contact
+    if (s === 2) {
+      if (!d.addressHouse?.trim()) e.addressHouse = 'Address is required · വിലാസം നൽകണം';
+      if (!d.addressPO?.trim())    e.addressPO    = 'Post office is required · പോസ്റ്റ് ഓഫീസ് നൽകണം';
+      if (!d.city?.trim())         e.city         = 'City is required · നഗരം നൽകണം';
+      if (!d.district?.trim())     e.district     = 'District is required · ജില്ല നൽകണം';
+      if (!d.state?.trim())        e.state        = 'State is required · സംസ്ഥാനം നൽകണം';
+      if (!d.homePhone?.trim() && !p.phone.trim()) e.homePhone = 'At least one phone number required · ഫോൺ നൽകണം';
+    }
+    // Section 3: Family — height and weight required
+    if (s === 3) {
+      if (!d.height?.trim()) e.height = 'Height is required · ഉയരം നൽകണം';
+      if (!d.weight?.trim()) e.weight = 'Weight is required · ഭാരം നൽകണം';
+    }
+    // Section 4: Occupation
+    if (s === 4) {
+      if (!d.occupation?.trim())               e.occupation               = 'Occupation is required · തൊഴിൽ നൽകണം';
+      if (!d.householdIncomeMonthly?.trim())   e.householdIncomeMonthly   = 'Monthly income is required · വരുമാനം നൽകണം';
+      if (!d.householdAssets?.trim())          e.householdAssets          = 'Household assets required · ആസ്തി നൽകണം';
+      if (!d.totalHouseholdAssetValue?.trim()) e.totalHouseholdAssetValue = 'Total asset value required · ആസ്തി മൂല്യം നൽകണം';
+      if (!d.ownsHouse)                        e.ownsHouse                = 'Please select · തിരഞ്ഞെടുക്കുക';
+    }
+    // Section 5: Referral
+    if (s === 5) {
+      if (!d.howDidYouKnow) e.howDidYouKnow = 'Please select how you heard about us · തിരഞ്ഞെടുക്കുക';
+    }
+    // Section 6: Medical
+    if (s === 6) {
+      if (!d.dateLostLimb)           e.dateLostLimb    = 'Date of limb loss is required · തീയതി നൽകണം';
+      if (!d.howLostLeg)             e.howLostLeg      = 'Please select how you lost your limb · കാരണം തിരഞ്ഞെടുക്കുക';
+      if (!d.legsLostCount)          e.legsLostCount   = 'Please select number of legs lost · തിരഞ്ഞെടുക്കുക';
+      if (!d.rightLeg)               e.rightLeg        = 'Right leg level required · തിരഞ്ഞെടുക്കുക';
+      if (!d.leftLeg)                e.leftLeg         = 'Left leg level required · തിരഞ്ഞെടുക്കുക';
+      if (!d.limbLossDetails?.trim()) e.limbLossDetails = 'Please describe the loss · വിവരം നൽകണം';
+      if (!d.hospitalName?.trim())   e.hospitalName    = 'Hospital name is required · ഹോസ്പിറ്റൽ നൽകണം';
+    }
+    // Section 7: Prosthetic
+    if (s === 7) {
+      if (!d.usedProsthetic)               e.usedProsthetic    = 'Please select Yes or No · തിരഞ്ഞെടുക്കുക';
+      if (!d.whyNewProsthetic?.trim())     e.whyNewProsthetic  = 'Please describe why you need a new prosthetic · കാരണം നൽകണം';
+    }
+    if (Object.keys(e).length > 0) { setDErr(x => ({ ...x, ...e })); return false; }
+    return true;
+  };
+
   const handleNext = () => {
     if (sec === 0 && !validatePersonal()) return;
     if (sec === 1 && !validateDocs())    return;
+    if (!validateSection(sec))           return;
     goTo(sec + 1);
   };
 
@@ -271,11 +322,20 @@ function PatientForm() {
         dateOfBirth: p.dateOfBirth, maritalStatus: p.maritalStatus,
         ...d,
       };
-      await fetch(`${API_URL}/api/patients/${regId}/details`, {
+      const r2 = await fetch(`${API_URL}/api/patients/${regId}/details`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(details),
       });
+      if (!r2.ok) {
+        const j2 = await r2.json();
+        if (j2.duplicate) {
+          throw new Error(
+            `ഈ പേരും ജനന തീയതിയും പിൻ കോഡും ഉള്ള ഒരു രോഗി ഇതിനകം രജിസ്റ്റർ ചെയ്തിട്ടുണ്ട്.\nThis patient is already registered with the same name, date of birth and PIN code.`
+          );
+        }
+        throw new Error(j2.message || 'Failed to save details.');
+      }
 
       router.push(`/success?id=${regId}&at=${encodeURIComponent(new Date().toISOString())}`);
     } catch (err: unknown) {
@@ -300,8 +360,8 @@ function PatientForm() {
             <F label="Last Name" sub="കുടുംബപ്പേര്">
               <input style={inp} placeholder="e.g. Menon" value={p.lastName} onChange={e => sp('lastName', e.target.value)} />
             </F>
-            <F label="Date of Birth" sub="ജനന തീയതി">
-              <input style={inp} type="date" value={p.dateOfBirth} onChange={e => spDob(e.target.value)} />
+            <F label="Date of Birth" sub="ജനന തീയതി" err={pErr.dateOfBirth}>
+              <input style={{ ...inp, ...(pErr.dateOfBirth ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="date" value={p.dateOfBirth} onChange={e => spDob(e.target.value)} />
             </F>
           </div>
           <div className="reg-grid-3" style={{ marginBottom: 16 }}>
@@ -313,19 +373,19 @@ function PatientForm() {
             <F label="Sex / Gender" sub="ലിംഗം" err={pErr.gender}>
               <select style={{ ...sel, ...(pErr.gender ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }}
                 value={p.gender} onChange={e => sp('gender', e.target.value)}>
-                <option value="">Select</option>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
                 <option value="male">Male · പുരുഷൻ</option>
                 <option value="female">Female · സ്ത്രീ</option>
                 <option value="other">Other · മറ്റ്</option>
               </select>
             </F>
-            <F label="Marital Status" sub="വിവാഹാവസ്ഥ">
-              <select style={sel} value={p.maritalStatus} onChange={e => sp('maritalStatus', e.target.value)}>
-                <option value="">Select</option>
-                <option value="single">Single</option>
-                <option value="married">Married</option>
-                <option value="widowed">Widowed</option>
-                <option value="divorced">Divorced</option>
+            <F label="Marital Status" sub="വിവാഹാവസ്ഥ" err={pErr.maritalStatus}>
+              <select style={{ ...sel, ...(pErr.maritalStatus ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={p.maritalStatus} onChange={e => sp('maritalStatus', e.target.value)}>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
+                <option value="single">Single · അവിവാഹിതൻ/അവിവാഹിത</option>
+                <option value="married">Married · വിവാഹിതൻ/വിവാഹിത</option>
+                <option value="widowed">Widowed · വിധവ/വിധുരൻ</option>
+                <option value="divorced">Divorced · വിവാഹമോചിതൻ/വിവാഹമോചിത</option>
               </select>
             </F>
           </div>
@@ -414,44 +474,44 @@ function PatientForm() {
       case 2: return (
         <>
           <div style={{ marginBottom: 16 }}>
-            <F label="Address / House Name" sub="വീടിന്റെ പേര്">
-              <input style={inp} placeholder="House name or number" value={d.addressHouse || ''} onChange={e => sd('addressHouse', e.target.value)} />
+            <F label="Address / House Name" sub="വീടിന്റെ പേര്" err={dErr.addressHouse}>
+              <input style={{ ...inp, ...(dErr.addressHouse ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="House name or number" value={d.addressHouse || ''} onChange={e => sd('addressHouse', e.target.value)} />
             </F>
           </div>
           <div className="reg-grid-2" style={{ marginBottom: 16 }}>
-            <F label="PO / Post Office" sub="പോസ്റ്റ് ഓഫീസ്"><input style={inp} placeholder="Post office" value={d.addressPO || ''} onChange={e => sd('addressPO', e.target.value)} /></F>
-            <F label="City / Town" sub="നഗരം"><input style={inp} placeholder="City or town" value={d.city || ''} onChange={e => sd('city', e.target.value)} /></F>
-            <F label="State" sub="സംസ്ഥാനം">
+            <F label="PO / Post Office" sub="പോസ്റ്റ് ഓഫീസ്" err={dErr.addressPO}><input style={{ ...inp, ...(dErr.addressPO ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Post office" value={d.addressPO || ''} onChange={e => sd('addressPO', e.target.value)} /></F>
+            <F label="City / Town" sub="നഗരം" err={dErr.city}><input style={{ ...inp, ...(dErr.city ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="City or town" value={d.city || ''} onChange={e => sd('city', e.target.value)} /></F>
+            <F label="District" sub="ജില്ല" err={dErr.district}>
               <Combobox
-                placeholder="Select or type state"
-                value={d.state || ''}
-                onChange={v => sd('state', v)}
-                options={['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Andaman and Nicobar Islands','Chandigarh','Dadra and Nagar Haveli and Daman and Diu','Delhi','Jammu and Kashmir','Ladakh','Lakshadweep','Puducherry']}
-              />
-            </F>
-            <F label="District" sub="ജില്ല">
-              <Combobox
-                placeholder="Select or type district"
+                placeholder="Select or type district · ജില്ല തിരഞ്ഞെടുക്കുക"
                 value={d.district || ''}
                 onChange={v => sd('district', v)}
-                options={['Alappuzha','Ernakulam','Idukki','Kannur','Kasaragod','Kollam','Kottayam','Kozhikode','Malappuram','Palakkad','Pathanamthitta','Thiruvananthapuram','Thrissur','Wayanad']}
+                options={['Alappuzha · ആലപ്പുഴ','Ernakulam · എറണാകുളം','Idukki · ഇടുക്കി','Kannur · കണ്ണൂർ','Kasaragod · കാസർഗോഡ്','Kollam · കൊല്ലം','Kottayam · കോട്ടയം','Kozhikode · കോഴിക്കോട്','Malappuram · മലപ്പുറം','Palakkad · പാലക്കാട്','Pathanamthitta · പത്തനംതിട്ട','Thiruvananthapuram · തിരുവനന്തപുരം','Thrissur · തൃശ്ശൂർ','Wayanad · വയനാട്']}
+              />
+            </F>
+            <F label="State" sub="സംസ്ഥാനം" err={dErr.state}>
+              <Combobox
+                placeholder="Select or type state · സംസ്ഥാനം തിരഞ്ഞെടുക്കുക"
+                value={d.state || ''}
+                onChange={v => sd('state', v)}
+                options={['Andhra Pradesh · ആന്ധ്രാ പ്രദേശ്','Arunachal Pradesh · അരുണാചൽ പ്രദേശ്','Assam · അസം','Bihar · ബിഹാർ','Chhattisgarh · ഛത്തീസ്ഗഢ്','Goa · ഗോവ','Gujarat · ഗുജറാത്ത്','Haryana · ഹരിയാന','Himachal Pradesh · ഹിമാചൽ പ്രദേശ്','Jharkhand · ജാർഖണ്ഡ്','Karnataka · കർണാടക','Kerala · കേരളം','Madhya Pradesh · മധ്യ പ്രദേശ്','Maharashtra · മഹാരാഷ്ട്ര','Manipur · മണിപ്പൂർ','Meghalaya · മേഘാലയ','Mizoram · മിസോറം','Nagaland · നാഗാലാൻഡ്','Odisha · ഒഡിഷ','Punjab · പഞ്ചാബ്','Rajasthan · രാജസ്ഥാൻ','Sikkim · സിക്കിം','Tamil Nadu · തമിഴ്നാട്','Telangana · തെലങ്കാന','Tripura · ത്രിപുര','Uttar Pradesh · ഉത്തർ പ്രദേശ്','Uttarakhand · ഉത്തരാഖണ്ഡ്','West Bengal · പശ്ചിമ ബംഗാൾ','Andaman and Nicobar Islands · ആൻഡമാൻ നിക്കോബാർ','Chandigarh · ചണ്ഡീഗഢ്','Dadra and Nagar Haveli and Daman and Diu · ദാദ്ര നഗർ ഹവേലി ദമൻ ദിയു','Delhi · ഡൽഹി','Jammu and Kashmir · ജമ്മു കശ്മീർ','Ladakh · ലഡാക്ക്','Lakshadweep · ലക്ഷദ്വീപ്','Puducherry · പുതുച്ചേരി']}
               />
             </F>
             <F label="Zipcode / PIN" sub="പിൻ കോഡ്"><input style={inp} placeholder="6-digit PIN" value={d.zipcode || ''} onChange={e => sd('zipcode', e.target.value)} /></F>
             <F label="Country" sub="രാജ്യം">
               <Combobox
-                placeholder="Select or type country"
+                placeholder="Select or type country · രാജ്യം തിരഞ്ഞെടുക്കുക"
                 value={d.country || ''}
                 onChange={v => sd('country', v)}
-                options={['India','Afghanistan','Australia','Bangladesh','Bhutan','Canada','China','France','Germany','Indonesia','Iran','Iraq','Italy','Japan','Malaysia','Maldives','Myanmar','Nepal','New Zealand','Pakistan','Philippines','Qatar','Russia','Saudi Arabia','Singapore','South Korea','Sri Lanka','Thailand','Turkey','United Arab Emirates','United Kingdom','United States']}
+                options={['India · ഇന്ത്യ','Afghanistan · അഫ്ഗാനിസ്ഥാൻ','Australia · ഓസ്‌ട്രേലിയ','Bangladesh · ബംഗ്ലാദേശ്','Bhutan · ഭൂട്ടാൻ','Canada · കാനഡ','China · ചൈന','France · ഫ്രാൻസ്','Germany · ജർമ്മനി','Indonesia · ഇൻഡോനേഷ്യ','Iran · ഇറാൻ','Iraq · ഇറാഖ്','Italy · ഇറ്റലി','Japan · ജപ്പാൻ','Malaysia · മലേഷ്യ','Maldives · മാലദ്വീപ്','Myanmar · മ്യാൻമാർ','Nepal · നേപ്പാൾ','New Zealand · ന്യൂസിലൻഡ്','Pakistan · പാകിസ്ഥാൻ','Philippines · ഫിലിപ്പൈൻസ്','Qatar · ഖത്തർ','Russia · റഷ്യ','Saudi Arabia · സൗദി അറേബ്യ','Singapore · സിംഗപ്പൂർ','South Korea · ദക്ഷിണ കൊറിയ','Sri Lanka · ശ്രീലങ്ക','Thailand · തായ്‌ലൻഡ്','Turkey · തുർക്കി','United Arab Emirates · യുഎഇ','United Kingdom · യുണൈറ്റഡ് കിംഗ്ഡം','United States · അമേരിക്ക']}
               />
             </F>
           </div>
           <div style={divider} />
           <div className="reg-grid-3">
-            <F label="Home Phone" sub="വീട്ടിലെ ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.homePhone || ''} onChange={e => sd('homePhone', e.target.value)} /></F>
+            <F label="Home Phone" sub="വീട്ടിലെ ഫോൺ" err={dErr.homePhone}><input style={{ ...inp, ...(dErr.homePhone ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="tel" placeholder="+91 XXXXX XXXXX" value={d.homePhone || ''} onChange={e => sd('homePhone', e.target.value)} /></F>
             <F label="Mobile" sub="മൊബൈൽ (from step 1)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.phone ? `+91 ${p.phone}` : 'Filled from step 1'} /></F>
-            <F label="Email" sub="ഇ-മെയിൽ (from step 1)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.email || 'Filled from step 1'} /></F>
+            <F label="Email" sub="ഇ-മെയിൽ (optional)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.email || 'Filled from step 1'} /></F>
           </div>
         </>
       );
@@ -459,26 +519,34 @@ function PatientForm() {
       // ─ 3: Family ───────────────────────────────────────────────────────────
       case 3: return (
         <>
-          <div style={subHead}>Parent / Guardian</div>
-          <div className="reg-grid-3" style={{ marginBottom: 4 }}>
-            <F label="Father's Name" sub="പിതാവ്"><input style={inp} placeholder="Father's full name" value={d.fatherName || ''} onChange={e => sd('fatherName', e.target.value)} /></F>
-            <F label="Mother's Name" sub="മാതാവ്"><input style={inp} placeholder="Mother's full name" value={d.motherName || ''} onChange={e => sd('motherName', e.target.value)} /></F>
-            <F label="Parents' Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.parentsPhone || ''} onChange={e => sd('parentsPhone', e.target.value)} /></F>
-          </div>
-          <div style={divider} />
-          <div style={subHead}>Spouse &amp; Children</div>
-          <div className="reg-grid-3" style={{ marginBottom: 4 }}>
-            <F label="Spouse Name" sub="പങ്കാളി"><input style={inp} placeholder="Spouse's full name" value={d.spouseName || ''} onChange={e => sd('spouseName', e.target.value)} /></F>
-            <F label="Spouse Occupation" sub="തൊഴിൽ"><input style={inp} placeholder="Occupation" value={d.spouseOccupation || ''} onChange={e => sd('spouseOccupation', e.target.value)} /></F>
-            <F label="Spouse Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.spousePhone || ''} onChange={e => sd('spousePhone', e.target.value)} /></F>
-            <F label="No. of Children" sub="കുട്ടികൾ"><input style={inp} type="number" placeholder="0" min="0" value={d.childrenCount || ''} onChange={e => sd('childrenCount', e.target.value)} /></F>
-            <F label="Years Married" sub="വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.yearsMarried || ''} onChange={e => sd('yearsMarried', e.target.value)} /></F>
-          </div>
-          <div style={divider} />
+          {Number(p.age) < 20 && (
+            <>
+              <div style={subHead}>Parent / Guardian</div>
+              <div className="reg-grid-3" style={{ marginBottom: 4 }}>
+                <F label="Father's Name" sub="പിതാവ്"><input style={inp} placeholder="Father's full name" value={d.fatherName || ''} onChange={e => sd('fatherName', e.target.value)} /></F>
+                <F label="Mother's Name" sub="മാതാവ്"><input style={inp} placeholder="Mother's full name" value={d.motherName || ''} onChange={e => sd('motherName', e.target.value)} /></F>
+                <F label="Parents' Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.parentsPhone || ''} onChange={e => sd('parentsPhone', e.target.value)} /></F>
+              </div>
+              <div style={divider} />
+            </>
+          )}
+          {p.maritalStatus === 'married' && (
+            <>
+              <div style={subHead}>Spouse &amp; Children</div>
+              <div className="reg-grid-3" style={{ marginBottom: 4 }}>
+                <F label="Spouse Name" sub="പങ്കാളി"><input style={inp} placeholder="Spouse's full name" value={d.spouseName || ''} onChange={e => sd('spouseName', e.target.value)} /></F>
+                <F label="Spouse Occupation" sub="തൊഴിൽ"><input style={inp} placeholder="Occupation" value={d.spouseOccupation || ''} onChange={e => sd('spouseOccupation', e.target.value)} /></F>
+                <F label="Spouse Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.spousePhone || ''} onChange={e => sd('spousePhone', e.target.value)} /></F>
+                <F label="No. of Children" sub="കുട്ടികൾ"><input style={inp} type="number" placeholder="0" min="0" value={d.childrenCount || ''} onChange={e => sd('childrenCount', e.target.value)} /></F>
+                <F label="Years Married" sub="വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.yearsMarried || ''} onChange={e => sd('yearsMarried', e.target.value)} /></F>
+              </div>
+              <div style={divider} />
+            </>
+          )}
           <div style={subHead}>Physical Details</div>
           <div className="reg-grid-2">
-            <F label="Height" sub="ഉയരം"><input style={inp} placeholder="e.g. 165 cm" value={d.height || ''} onChange={e => sd('height', e.target.value)} /></F>
-            <F label="Weight" sub="ഭാരം"><input style={inp} placeholder="e.g. 65 kg" value={d.weight || ''} onChange={e => sd('weight', e.target.value)} /></F>
+            <F label="Height" sub="ഉയരം" err={dErr.height}><input style={{ ...inp, ...(dErr.height ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="e.g. 165 cm" value={d.height || ''} onChange={e => sd('height', e.target.value)} /></F>
+            <F label="Weight" sub="ഭാരം" err={dErr.weight}><input style={{ ...inp, ...(dErr.weight ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="e.g. 65 kg" value={d.weight || ''} onChange={e => sd('weight', e.target.value)} /></F>
           </div>
         </>
       );
@@ -487,16 +555,16 @@ function PatientForm() {
       case 4: return (
         <>
           <div className="reg-grid-3">
-            <F label="Occupation" sub="തൊഴിൽ"><input style={inp} placeholder="e.g. Farmer, Teacher" value={d.occupation || ''} onChange={e => sd('occupation', e.target.value)} /></F>
-            <F label="Monthly Household Income" sub="പ്രതിമാസ വരുമാനം"><input style={inp} placeholder="₹ Amount" value={d.householdIncomeMonthly || ''} onChange={e => sd('householdIncomeMonthly', e.target.value)} /></F>
-            <F label="Household Assets" sub="ആസ്തി"><input style={inp} placeholder="Bike / Car / Land" value={d.householdAssets || ''} onChange={e => sd('householdAssets', e.target.value)} /></F>
-            <F label="Total Asset Value" sub="മൊത്തം ആസ്തി മൂല്യം"><input style={inp} placeholder="₹ Estimated" value={d.totalHouseholdAssetValue || ''} onChange={e => sd('totalHouseholdAssetValue', e.target.value)} /></F>
-            <F label="Own a House?" sub="സ്വന്തമായി വീടുണ്ടോ?">
-              <select style={sel} value={d.ownsHouse || ''} onChange={e => sd('ownsHouse', e.target.value)}>
-                <option value="">Select</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-                <option value="rented">Rented</option>
+            <F label="Occupation" sub="തൊഴിൽ" err={dErr.occupation}><input style={{ ...inp, ...(dErr.occupation ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="e.g. Farmer, Teacher" value={d.occupation || ''} onChange={e => sd('occupation', e.target.value)} /></F>
+            <F label="Monthly Household Income" sub="പ്രതിമാസ വരുമാനം" err={dErr.householdIncomeMonthly}><input style={{ ...inp, ...(dErr.householdIncomeMonthly ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="₹ Amount" value={d.householdIncomeMonthly || ''} onChange={e => sd('householdIncomeMonthly', e.target.value)} /></F>
+            <F label="Household Assets" sub="ആസ്തി" err={dErr.householdAssets}><input style={{ ...inp, ...(dErr.householdAssets ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Bike / Car / Land" value={d.householdAssets || ''} onChange={e => sd('householdAssets', e.target.value)} /></F>
+            <F label="Total Asset Value" sub="മൊത്തം ആസ്തി മൂല്യം" err={dErr.totalHouseholdAssetValue}><input style={{ ...inp, ...(dErr.totalHouseholdAssetValue ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="₹ Estimated" value={d.totalHouseholdAssetValue || ''} onChange={e => sd('totalHouseholdAssetValue', e.target.value)} /></F>
+            <F label="Own a House?" sub="സ്വന്തമായി വീടുണ്ടോ?" err={dErr.ownsHouse}>
+              <select style={{ ...sel, ...(dErr.ownsHouse ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={d.ownsHouse || ''} onChange={e => sd('ownsHouse', e.target.value)}>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
+                <option value="yes">Yes · ഉണ്ട്</option>
+                <option value="no">No · ഇല്ല</option>
+                <option value="rented">Rented · വാടകയ്ക്ക്</option>
               </select>
             </F>
           </div>
@@ -507,15 +575,15 @@ function PatientForm() {
       case 5: return (
         <>
           <div className="reg-grid-2">
-            <F label="How did you hear about us?" sub="ലൈഫ് & ലിംബ് നെ കുറിച്ച് അറിഞ്ഞത്">
-              <select style={sel} value={d.howDidYouKnow || ''} onChange={e => sd('howDidYouKnow', e.target.value)}>
-                <option value="">Select one</option>
-                <option value="doctor">Doctor / Hospital</option>
-                <option value="ngo">NGO / Social Worker</option>
-                <option value="friend">Friend / Family</option>
-                <option value="social_media">Social Media</option>
-                <option value="govt_camp">Government Camp</option>
-                <option value="other">Other</option>
+            <F label="How did you hear about us?" sub="ലൈഫ് & ലിംബ് നെ കുറിച്ച് അറിഞ്ഞത്" err={dErr.howDidYouKnow}>
+              <select style={{ ...sel, ...(dErr.howDidYouKnow ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={d.howDidYouKnow || ''} onChange={e => sd('howDidYouKnow', e.target.value)}>
+                <option value="">Select one / ഒന്ന് തിരഞ്ഞെടുക്കുക</option>
+                <option value="doctor">Doctor / Hospital · ഡോക്ടർ / ആശുപത്രി</option>
+                <option value="ngo">NGO / Social Worker · എൻജിഒ / സോഷ്യൽ വർക്കർ</option>
+                <option value="friend">Friend / Family · സുഹൃത്ത് / കുടുംബം</option>
+                <option value="social_media">Social Media · സോഷ്യൽ മീഡിയ</option>
+                <option value="govt_camp">Government Camp · സർക്കാർ ക്യാമ്പ്</option>
+                <option value="other">Other · മറ്റ്</option>
               </select>
             </F>
             <F label="Referred By" sub="ആരാണ് ശുപാർശ ചെയ്തത്"><input style={inp} placeholder="Name of referrer" value={d.referredBy || ''} onChange={e => sd('referredBy', e.target.value)} /></F>
@@ -532,61 +600,72 @@ function PatientForm() {
           </div>
           <div style={subHead}>Limb Loss Details</div>
           <div className="reg-grid-3" style={{ marginBottom: 16 }}>
-            <F label="Date of Limb Loss" sub="കാലുകൾ നഷ്ടപ്പെട്ട തീയതി"><input style={inp} type="date" value={d.dateLostLimb || ''} onChange={e => sd('dateLostLimb', e.target.value)} /></F>
-            <F label="How did you lose your limb?" sub="കാരണം">
-              <select style={sel} value={d.howLostLeg || ''} onChange={e => sd('howLostLeg', e.target.value)}>
-                <option value="">Select</option>
-                <option value="accident">Accident / Trauma</option>
-                <option value="diabetes">Diabetes</option>
-                <option value="cancer">Cancer</option>
-                <option value="congenital">Congenital</option>
-                <option value="vascular">Vascular Disease</option>
-                <option value="other">Other</option>
+            <F label="Date of Limb Loss" sub="കാലുകൾ നഷ്ടപ്പെട്ട തീയതി" err={dErr.dateLostLimb}><input style={{ ...inp, ...(dErr.dateLostLimb ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="date" value={d.dateLostLimb || ''} onChange={e => {
+              const val = e.target.value;
+              sd('dateLostLimb', val);
+              if (val) {
+                const lost = new Date(val);
+                const today = new Date();
+                let yrs = today.getFullYear() - lost.getFullYear();
+                const m = today.getMonth() - lost.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < lost.getDate())) yrs--;
+                if (yrs >= 0 && yrs < 130) sd('yearsLost', String(yrs));
+              }
+            }} /></F>
+            <F label="How did you lose your limb?" sub="കാരണം" err={dErr.howLostLeg}>
+              <select style={{ ...sel, ...(dErr.howLostLeg ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={d.howLostLeg || ''} onChange={e => sd('howLostLeg', e.target.value)}>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
+                <option value="accident">Accident / Trauma · അപകടം / ആഘാതം</option>
+                <option value="diabetes">Diabetes · പ്രമേഹം</option>
+                <option value="cancer">Cancer · കാൻസർ</option>
+                <option value="congenital">Congenital · ജന്മനാ</option>
+                <option value="vascular">Vascular Disease · രക്തക്കുഴൽ രോഗം</option>
+                <option value="other">Other · മറ്റ്</option>
               </select>
             </F>
-            <F label="Years Since Loss" sub="കാലു നഷ്ടപ്പെട്ടിട്ട് വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.yearsLost || ''} onChange={e => sd('yearsLost', e.target.value)} /></F>
-            <F label="How many legs lost?" sub="എത്ര കാലുകൾ">
-              <select style={sel} value={d.legsLostCount || ''} onChange={e => sd('legsLostCount', e.target.value)}>
-                <option value="">Select</option>
-                <option value="1">One</option>
-                <option value="2">Both</option>
+            <F label="Years Since Loss" sub={d.dateLostLimb ? 'Auto-calculated · സ്വയം കണക്കാക്കി' : 'കാലു നഷ്ടപ്പെട്ടിട്ട് വർഷം'}><input style={{ ...inp, ...(d.dateLostLimb ? { background: '#F3F4F6', color: '#6B7280' } : {}) }} type="number" placeholder="Years" min="0" value={d.yearsLost || ''} onChange={e => sd('yearsLost', e.target.value)} readOnly={!!d.dateLostLimb} /></F>
+            <F label="How many legs lost?" sub="എത്ര കാലുകൾ" err={dErr.legsLostCount}>
+              <select style={{ ...sel, ...(dErr.legsLostCount ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={d.legsLostCount || ''} onChange={e => sd('legsLostCount', e.target.value)}>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
+                <option value="1">One · ഒന്ന്</option>
+                <option value="2">Both · രണ്ടും</option>
               </select>
             </F>
-            <F label="Right Leg Level" sub="വലതു കാൽ">
-              <select style={sel} value={d.rightLeg || ''} onChange={e => sd('rightLeg', e.target.value)}>
-                <option value="">Select</option>
-                <option value="bk">Below Knee (BK)</option>
-                <option value="ak">Above Knee (AK)</option>
-                <option value="hip">Hip Disarticulation</option>
-                <option value="na">Not applicable</option>
+            <F label="Right Leg Level" sub="വലതു കാൽ" err={dErr.rightLeg}>
+              <select style={{ ...sel, ...(dErr.rightLeg ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={d.rightLeg || ''} onChange={e => sd('rightLeg', e.target.value)}>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
+                <option value="bk">Below Knee (BK) · മുട്ടിന് താഴെ</option>
+                <option value="ak">Above Knee (AK) · മുട്ടിന് മുകളിൽ</option>
+                <option value="hip">Hip Disarticulation · ഇടുപ്പ് വേർപെടൽ</option>
+                <option value="na">Not applicable · ബാധകമല്ല</option>
               </select>
             </F>
-            <F label="Left Leg Level" sub="ഇടതു കാൽ">
-              <select style={sel} value={d.leftLeg || ''} onChange={e => sd('leftLeg', e.target.value)}>
-                <option value="">Select</option>
-                <option value="bk">Below Knee (BK)</option>
-                <option value="ak">Above Knee (AK)</option>
-                <option value="hip">Hip Disarticulation</option>
-                <option value="na">Not applicable</option>
+            <F label="Left Leg Level" sub="ഇടതു കാൽ" err={dErr.leftLeg}>
+              <select style={{ ...sel, ...(dErr.leftLeg ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} value={d.leftLeg || ''} onChange={e => sd('leftLeg', e.target.value)}>
+                <option value="">Select / തിരഞ്ഞെടുക്കുക</option>
+                <option value="bk">Below Knee (BK) · മുട്ടിന് താഴെ</option>
+                <option value="ak">Above Knee (AK) · മുട്ടിന് മുകളിൽ</option>
+                <option value="hip">Hip Disarticulation · ഇടുപ്പ് വേർപെടൽ</option>
+                <option value="na">Not applicable · ബാധകമല്ല</option>
               </select>
             </F>
           </div>
           <div style={{ marginBottom: 16 }}>
-            <F label="Describe the loss in detail" sub="കാലുകൾ നഷ്ടമായ വിവരം">
-              <textarea style={txa} placeholder="Please describe the circumstances and details..." value={d.limbLossDetails || ''} onChange={e => sd('limbLossDetails', e.target.value)} />
+            <F label="Describe the loss in detail" sub="കാലുകൾ നഷ്ടമായ വിവരം · Malayalam typing supported" err={dErr.limbLossDetails}>
+              <textarea style={{ ...txa, ...(dErr.limbLossDetails ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Please describe the circumstances and details..." value={d.limbLossDetails || ''} onChange={e => sd('limbLossDetails', e.target.value)} />
             </F>
           </div>
           <div style={divider} />
           <div style={subHead}>Hospital Information</div>
           <div className="reg-grid-3" style={{ marginBottom: 16 }}>
-            <F label="Hospital Name" sub="ഹോസ്പിറ്റൽ"><input style={inp} placeholder="Hospital name" value={d.hospitalName || ''} onChange={e => sd('hospitalName', e.target.value)} /></F>
+            <F label="Hospital Name" sub="ഹോസ്പിറ്റൽ" err={dErr.hospitalName}><input style={{ ...inp, ...(dErr.hospitalName ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Hospital name" value={d.hospitalName || ''} onChange={e => sd('hospitalName', e.target.value)} /></F>
             <F label="Doctor's Name" sub="ഡോക്ടർ"><input style={inp} placeholder="Doctor's full name" value={d.doctorName || ''} onChange={e => sd('doctorName', e.target.value)} /></F>
             <F label="Hospital Address" sub="അഡ്രസ്"><input style={inp} placeholder="Address" value={d.hospitalAddress || ''} onChange={e => sd('hospitalAddress', e.target.value)} /></F>
           </div>
           <div style={subHead}>Hospitalization Period</div>
           <div className="reg-grid-2">
-            <F label="From"><input style={inp} type="date" value={d.hospitalizedFrom || ''} onChange={e => sd('hospitalizedFrom', e.target.value)} /></F>
-            <F label="To"><input style={inp} type="date" value={d.hospitalizedTo || ''} onChange={e => sd('hospitalizedTo', e.target.value)} /></F>
+            <F label="From" sub="മാസം / വർഷം"><input style={inp} type="month" value={d.hospitalizedFrom || ''} onChange={e => sd('hospitalizedFrom', e.target.value)} /></F>
+            <F label="To" sub="മാസം / വർഷം"><input style={inp} type="month" value={d.hospitalizedTo || ''} onChange={e => sd('hospitalizedTo', e.target.value)} /></F>
           </div>
         </>
       );
@@ -595,10 +674,10 @@ function PatientForm() {
       case 7: return (
         <>
           <div style={{ marginBottom: 20 }}>
-            <F label="Have you used a prosthetic leg before?" sub="നിങ്ങൾ മുമ്പ് കൃത്രിമ കാൽ ഉപയോഗിച്ചിട്ടുണ്ടോ?">
+            <F label="Have you used a prosthetic leg before?" sub="നിങ്ങൾ മുമ്പ് കൃത്രിമ കാൽ ഉപയോഗിച്ചിട്ടുണ്ടോ?" err={dErr.usedProsthetic}>
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                 {['yes', 'no'].map(val => (
-                  <label key={val} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 40, cursor: 'pointer', border: `1.5px solid ${d.usedProsthetic === val ? C.dark : C.borderStrong}`, background: d.usedProsthetic === val ? C.dark : 'white', color: d.usedProsthetic === val ? 'white' : C.textSub, fontSize: 13, fontWeight: 500, transition: 'all 0.2s', fontFamily: "var(--font-syne,'Syne',sans-serif)" }}>
+                  <label key={val} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 40, cursor: 'pointer', border: `1.5px solid ${d.usedProsthetic === val ? C.dark : (dErr.usedProsthetic ? '#EF4444' : C.borderStrong)}`, background: d.usedProsthetic === val ? C.dark : 'white', color: d.usedProsthetic === val ? 'white' : C.textSub, fontSize: 13, fontWeight: 500, transition: 'all 0.2s', fontFamily: "var(--font-syne,'Syne',sans-serif)" }}>
                     <input type="radio" name="usedProsthetic" value={val} checked={d.usedProsthetic === val} onChange={() => sd('usedProsthetic', val)} style={{ display: 'none' }} />
                     {val === 'yes' ? '✓ Yes' : '✗ No'}
                   </label>
@@ -606,14 +685,23 @@ function PatientForm() {
               </div>
             </F>
           </div>
-          <div className="reg-grid-2" style={{ marginBottom: 16 }}>
-            <F label="Years using prosthetic" sub="എത്ര വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.prostheticYears || ''} onChange={e => sd('prostheticYears', e.target.value)} /></F>
-            <F label="Where did you get it from?" sub="എവിടെ നിന്ന്"><input style={inp} placeholder="Source / organization" value={d.prostheticSource || ''} onChange={e => sd('prostheticSource', e.target.value)} /></F>
-            <F label="Manufacturer / Brand" sub="നിർമ്മാണ കമ്പനി"><input style={inp} placeholder="Brand name" value={d.prostheticManufacturer || ''} onChange={e => sd('prostheticManufacturer', e.target.value)} /></F>
-          </div>
-          <F label="Why do you need a new prosthetic?" sub="പുതിയ കൃത്രിമ കാൽ വേണ്ടതിന്റെ കാരണം">
-            <textarea style={txa} placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={e => sd('whyNewProsthetic', e.target.value)} />
-          </F>
+          {d.usedProsthetic === 'yes' && (
+            <>
+              <div className="reg-grid-2" style={{ marginBottom: 16 }}>
+                <F label="Years using prosthetic" sub="എത്ര വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.prostheticYears || ''} onChange={e => sd('prostheticYears', e.target.value)} /></F>
+                <F label="Where did you get it from?" sub="എവിടെ നിന്ന്"><input style={inp} placeholder="Source / organization" value={d.prostheticSource || ''} onChange={e => sd('prostheticSource', e.target.value)} /></F>
+                <F label="Manufacturer / Brand" sub="നിർമ്മാണ കമ്പനി"><input style={inp} placeholder="Brand name" value={d.prostheticManufacturer || ''} onChange={e => sd('prostheticManufacturer', e.target.value)} /></F>
+              </div>
+              <F label="Why do you need a new prosthetic?" sub="പുതിയ കൃത്രിമ കാൽ വേണ്ടതിന്റെ കാരണം" err={dErr.whyNewProsthetic}>
+                <textarea style={{ ...txa, ...(dErr.whyNewProsthetic ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={e => sd('whyNewProsthetic', e.target.value)} />
+              </F>
+            </>
+          )}
+          {d.usedProsthetic === 'no' && (
+            <F label="Why do you need a new prosthetic?" sub="പുതിയ കൃത്രിമ കാൽ വേണ്ടതിന്റെ കാരണം" err={dErr.whyNewProsthetic}>
+              <textarea style={{ ...txa, ...(dErr.whyNewProsthetic ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={e => sd('whyNewProsthetic', e.target.value)} />
+            </F>
+          )}
         </>
       );
 

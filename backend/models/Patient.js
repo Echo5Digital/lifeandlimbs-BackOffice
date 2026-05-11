@@ -22,19 +22,19 @@ const patientSchema = new mongoose.Schema(
       enum: [
         'new',
         'ready_for_evaluation',
-        'scheduling',
-        'evaluated_pending',
         'evaluated',
-        'rejected',
         'approved',
-        'completed',
-        'follow_up',
-        'repairs',
         'on_hold',
-        'incomplete',
+        'rejected',
       ],
       default: 'new',
     },
+    statusHistory: [
+      {
+        status:    { type: String },
+        changedAt: { type: Date, default: Date.now },
+      },
+    ],
     registrationId: { type: String, unique: true },
     registeredAt:   { type: Date, default: Date.now },
 
