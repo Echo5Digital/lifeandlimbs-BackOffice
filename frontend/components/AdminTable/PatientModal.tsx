@@ -24,6 +24,7 @@ const statusOptions: { value: PatientStatus; label: string }[] = [
   { value: 'approved',             label: 'Approved' },
   { value: 'on_hold',              label: 'On Hold' },
   { value: 'rejected',             label: 'Rejected' },
+  { value: 'completed',            label: 'Completed' },
 ];
 
 const docLabels: { key: keyof Patient['documents']; label: string }[] = [

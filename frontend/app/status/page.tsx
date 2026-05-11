@@ -12,6 +12,7 @@ const STATUS_LABELS: Record<string, { label: string; ml: string; color: string; 
   approved:             { label: 'Approved',             ml: 'അംഗീകരിച്ചു',                  color: '#065F46', bg: '#ECFDF5', step: 4 },
   on_hold:              { label: 'On Hold',              ml: 'നിലവിൽ ഹോൾഡ് ചെയ്തിരിക്കുന്നു', color: '#4B5563', bg: '#F3F4F6', step: 2 },
   rejected:             { label: 'Not Approved',         ml: 'അംഗീകരിച്ചിട്ടില്ല',             color: '#991B1B', bg: '#FEF2F2', step: 0 },
+  completed:            { label: 'Completed',            ml: 'പൂർത്തിയായി',                    color: '#065F46', bg: '#F0FDF4', step: 5 },
 };
 
 const STEPS = [
@@ -19,6 +20,7 @@ const STEPS = [
   { key: 'ready_for_evaluation', label: 'Under Review', ml: 'അവലോകനത്തിൽ' },
   { key: 'evaluated',            label: 'Evaluated',    ml: 'മൂല്യനിർണ്ണയം' },
   { key: 'approved',             label: 'Approved',     ml: 'അംഗീകരിച്ചു' },
+  { key: 'completed',            label: 'Completed',    ml: 'പൂർത്തിയായി' },
 ];
 
 interface StatusData {
@@ -98,7 +100,7 @@ function StatusContent() {
             </div>
 
             {/* Progress steps */}
-            {data.status !== 'rejected' && (
+            {data.status !== 'rejected' && data.status !== 'on_hold' && (
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   {STEPS.map((s, i) => {

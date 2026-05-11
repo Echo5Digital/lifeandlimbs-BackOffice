@@ -22,6 +22,7 @@ const statCards: { key: PatientStatus; label: string; color: string; bg: string;
   { key: 'approved',             label: 'Approved',          color: 'text-[#0369a1]', bg: 'bg-[#f0f9ff]', border: 'border-[#BAE6FD]' },
   { key: 'on_hold',              label: 'On Hold',           color: 'text-[#4B5563]', bg: 'bg-[#F3F4F6]', border: 'border-[#D1D5DB]' },
   { key: 'rejected',             label: 'Rejected',          color: 'text-[#991B1B]', bg: 'bg-[#FEF2F2]', border: 'border-[#FECACA]' },
+  { key: 'completed',            label: 'Completed',         color: 'text-[#065F46]', bg: 'bg-[#F0FDF4]', border: 'border-[#86EFAC]' },
 ];
 
 export default function AdminDashboard() {

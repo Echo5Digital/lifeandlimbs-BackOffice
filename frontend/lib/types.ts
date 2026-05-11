@@ -6,7 +6,8 @@ export type PatientStatus =
   | 'evaluated'
   | 'approved'
   | 'on_hold'
-  | 'rejected';
+  | 'rejected'
+  | 'completed';
 
 export interface Patient {
   _id: string;
