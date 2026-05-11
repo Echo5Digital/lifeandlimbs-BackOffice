@@ -36,13 +36,13 @@ export interface Patient {
   parentsPhone?: string; yearsMarried?: number;
   height?: string; weight?: string; occupation?: string;
   householdIncomeMonthly?: string; householdAssets?: string;
-  totalHouseholdAssetValue?: string; ownsHouse?: boolean;
+  totalHouseholdAssetValue?: string; ownsHouse?: string;
   howDidYouKnow?: string; referredBy?: string;
   dateLostLimb?: string; howLostLeg?: string; yearsLost?: number;
-  legsLostCount?: number; rightLeg?: boolean; leftLeg?: boolean; limbLossDetails?: string;
+  legsLostCount?: string; rightLeg?: string; leftLeg?: string; limbLossDetails?: string;
   hospitalName?: string; doctorName?: string; hospitalAddress?: string;
   hospitalizedFrom?: string; hospitalizedTo?: string;
-  usedProsthetic?: boolean; prostheticYears?: number;
+  usedProsthetic?: string; prostheticYears?: string;
   whyNewProsthetic?: string; prostheticSource?: string; prostheticManufacturer?: string;
   detailsSubmittedAt?: string;
   statusHistory?: { status: string; changedAt: string }[];
