@@ -32,6 +32,42 @@ const docLabels: { key: keyof Patient['documents']; label: string }[] = [
   { key: 'aadhaarCard',  label: 'Aadhaar Card' },
 ];
 
+// --- Label maps for stored enum values ---
+const LABELS: Record<string, Record<string, string>> = {
+  gender: { male: 'Male', female: 'Female', other: 'Other' },
+  maritalStatus: { single: 'Single', married: 'Married', widowed: 'Widowed', divorced: 'Divorced' },
+  legLevel: {
+    bk:  'Below Knee (BK)',
+    ak:  'Above Knee (AK)',
+    hip: 'Hip Disarticulation',
+    na:  'Not Applicable',
+  },
+  howLostLeg: {
+    accident:   'Accident / Trauma',
+    diabetes:   'Diabetes',
+    cancer:     'Cancer',
+    congenital: 'Congenital',
+    vascular:   'Vascular Disease',
+    other:      'Other',
+  },
+  legsLostCount: { '1': 'One leg', '2': 'Both legs' },
+  usedProsthetic: { yes: 'Yes', no: 'No' },
+  ownsHouse: { yes: 'Yes', no: 'No', rented: 'Rented' },
+  howDidYouKnow: {
+    doctor:       'Doctor / Hospital',
+    ngo:          'NGO / Social Worker',
+    friend:       'Friend / Family',
+    social_media: 'Social Media',
+    govt_camp:    'Government Camp',
+    other:        'Other',
+  },
+};
+
+function lbl(map: string, val: string | undefined | null): string | undefined {
+  if (!val) return undefined;
+  return LABELS[map]?.[val] ?? val;
+}
+
 // --- SVG icons ---
 const Icons = {
   user:      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
@@ -192,14 +228,14 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
               defaultOpen={true}
               rows={[
                 ['Full Name', patient.fullName],
-                ['Age', patient.age],
-                ['Gender', patient.gender],
+                ['Age', patient.age ? `${patient.age} yrs` : undefined],
+                ['Gender', lbl('gender', patient.gender)],
                 ['Date of Birth', patient.dateOfBirth],
-                ['Phone', patient.phone],
+                ['Phone', patient.phone ? `+91 ${patient.phone}` : undefined],
                 ['Home Phone', patient.homePhone],
                 ['Email', patient.email],
                 ['District', patient.district],
-                ['Marital Status', patient.maritalStatus],
+                ['Marital Status', lbl('maritalStatus', patient.maritalStatus)],
               ]}
             />
 
@@ -242,7 +278,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
                 ['Monthly Household Income', patient.householdIncomeMonthly],
                 ['Household Assets', patient.householdAssets],
                 ['Total Asset Value', patient.totalHouseholdAssetValue],
-                ['Owns House', patient.ownsHouse],
+                ['Owns House', lbl('ownsHouse', patient.ownsHouse)],
                 ['Height', patient.height],
                 ['Weight', patient.weight],
               ]}
@@ -253,7 +289,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
               title="Referral"
               icon={Icons.share}
               rows={[
-                ['How Did You Know', patient.howDidYouKnow],
+                ['How Did You Know', lbl('howDidYouKnow', patient.howDidYouKnow)],
                 ['Referred By', patient.referredBy],
               ]}
             />
@@ -264,11 +300,11 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
               icon={Icons.activity}
               rows={[
                 ['Date Lost Limb', patient.dateLostLimb],
-                ['How Lost Leg', patient.howLostLeg],
-                ['Years Lost', patient.yearsLost],
-                ['Number of Legs Lost', patient.legsLostCount],
-                ['Right Leg', patient.rightLeg],
-                ['Left Leg', patient.leftLeg],
+                ['How Lost Leg', lbl('howLostLeg', patient.howLostLeg)],
+                ['Years Since Loss', patient.yearsLost ? `${patient.yearsLost} yrs` : undefined],
+                ['Number of Legs Lost', lbl('legsLostCount', patient.legsLostCount)],
+                ['Right Leg', lbl('legLevel', patient.rightLeg)],
+                ['Left Leg', lbl('legLevel', patient.leftLeg)],
                 ['Limb Loss Details', patient.limbLossDetails],
                 ['Injury Description', patient.injuryDesc],
                 ['Hospital Name', patient.hospitalName],
@@ -284,7 +320,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
               title="Prosthetic History"
               icon={Icons.prosthetic}
               rows={[
-                ['Used Prosthetic Before', patient.usedProsthetic],
+                ['Used Prosthetic Before', lbl('usedProsthetic', patient.usedProsthetic)],
                 ['Years Used', patient.prostheticYears],
                 ['Why New Prosthetic', patient.whyNewProsthetic],
                 ['Previous Source', patient.prostheticSource],

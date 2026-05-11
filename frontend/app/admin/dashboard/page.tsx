@@ -101,7 +101,9 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <img src="/logo.webp" alt="Life and Limb" className="w-12 h-12 object-contain" />
+          <div className="bg-[#0369a1] rounded-xl p-1.5 flex items-center justify-center">
+            <img src="/logo.webp" alt="Life and Limb" className="w-14 h-14 object-contain" />
+          </div>
           <div>
             <h1 className="text-lg font-bold text-[#0369a1]">Admin Dashboard</h1>
             <p className="text-xs text-[#9CA3AF]">Life and Limb – Registration · Patient Registrations</p>
