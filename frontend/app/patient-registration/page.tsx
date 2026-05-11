@@ -109,10 +109,33 @@ function F({ label, sub, err, children }: { label: string; sub?: string; err?: s
 }
 
 // ─── Document upload helper ───────────────────────────────────────────────────
+const DOC_ICONS = {
+  camera: (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  ),
+  house: (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <polyline points="9,21 9,12 15,12 15,21"/>
+    </svg>
+  ),
+  idCard: (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2"/>
+      <circle cx="8" cy="12" r="2.5"/>
+      <line x1="13" y1="10" x2="19" y2="10"/>
+      <line x1="13" y1="14" x2="17" y2="14"/>
+    </svg>
+  ),
+};
+
 const ALL_DOCS = [
-  { key: 'patientPhoto' as const, icon: '📷', en: 'Patient full picture that shows lost leg',               ml: 'നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം', accept: 'image/*' },
-  { key: 'housePhoto'   as const, icon: '🏠', en: 'Picture of the entire house with Patient in front',      ml: 'നിങ്ങളുടെ വീടിന്റെ മുന്നിൽ നിന്ന് ഉള്ള മുഴുവൻ ചിത്രം',      accept: 'image/*' },
-  { key: 'aadhaarCard'  as const, icon: '📋', en: 'Aadhaar Card',                                           ml: 'നിങ്ങളുടെ ആധാർ കാർഡിന്റെ ചിത്രം',                           accept: 'image/*,application/pdf' },
+  { key: 'patientPhoto' as const, icon: DOC_ICONS.camera, en: 'Patient full picture that shows lost leg',               ml: 'നഷ്ടപ്പെട്ട കാല്‌ (കൾ) കാണിക്കുന്ന നിങ്ങളുടെ പൂർണ്ണ ചിത്രം', accept: 'image/*' },
+  { key: 'housePhoto'   as const, icon: DOC_ICONS.house,  en: 'Picture of the entire house with Patient in front',      ml: 'നിങ്ങളുടെ വീടിന്റെ മുന്നിൽ നിന്ന് ഉള്ള മുഴുവൻ ചിത്രം',      accept: 'image/*' },
+  { key: 'aadhaarCard'  as const, icon: DOC_ICONS.idCard, en: 'Aadhaar Card',                                           ml: 'നിങ്ങളുടെ ആധാർ കാർഡിന്റെ ചിത്രം',                           accept: 'image/*,application/pdf' },
 ];
 type DocKey = 'patientPhoto' | 'housePhoto' | 'aadhaarCard';
 type Docs   = Record<DocKey, File | null>;
@@ -443,7 +466,7 @@ function PatientForm() {
                     {url ? (
                       <img src={url} alt={doc.en} style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 10, border: `2px solid ${C.mid}`, flexShrink: 0 }} />
                     ) : (
-                      <div style={{ width: 56, height: 56, background: C.light, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+                      <div style={{ width: 56, height: 56, background: C.light, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.blue, flexShrink: 0 }}>
                         {doc.icon}
                       </div>
                     )}
@@ -863,7 +886,9 @@ function PatientForm() {
               രോഗി രജിസ്ട്രേഷൻ — Section {sec + 1} of {SECTIONS.length}
             </div>
           </div>
-          <img src="/logo.webp" alt="Life and Limbs" style={{ height: 80, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ background: 'white', borderRadius: 16, padding: '10px 18px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}>
+            <img src="/logo.webp" alt="Life and Limbs" style={{ height: 100, width: 'auto', objectFit: 'contain', display: 'block' }} />
+          </div>
         </div>
         {/* Stepper */}
         <div style={{ paddingBottom: 28 }}>
