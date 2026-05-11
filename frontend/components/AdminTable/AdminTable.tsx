@@ -23,6 +23,7 @@ const statusBadge: Record<PatientStatus, string> = {
   approved:             'bg-[#f0f9ff] text-[#0369a1]',
   on_hold:              'bg-[#F3F4F6] text-[#4B5563]',
   rejected:             'bg-[#FEF2F2] text-[#991B1B]',
+  completed:            'bg-[#F0FDF4] text-[#065F46]',
 };
 
 export const statusLabel: Record<PatientStatus, string> = {
@@ -32,6 +33,7 @@ export const statusLabel: Record<PatientStatus, string> = {
   approved:             'Approved',
   on_hold:              'On Hold',
   rejected:             'Rejected',
+  completed:            'Completed',
 };
 
 export default function AdminTable({ patients, onView, onDeleted }: Props) {
