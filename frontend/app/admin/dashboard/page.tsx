@@ -16,7 +16,7 @@ function authHeaders() {
 
 // Key summary cards shown at the top of the dashboard
 const statCards: { key: PatientStatus; label: string; color: string; bg: string; border: string }[] = [
-  { key: 'new',                  label: 'New',               color: 'text-[#185FA5]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
+  { key: 'new',                  label: 'New',               color: 'text-[#0369a1]', bg: 'bg-[#f0f9ff]', border: 'border-[#BAE6FD]' },
   { key: 'ready_for_evaluation', label: 'Ready to Evaluate', color: 'text-[#6D28D9]', bg: 'bg-[#F5F3FF]', border: 'border-[#C4B5FD]' },
   { key: 'evaluated',            label: 'Evaluated',         color: 'text-[#065F46]', bg: 'bg-[#ECFDF5]', border: 'border-[#6EE7B7]' },
   { key: 'approved',             label: 'Approved',          color: 'text-[#0369a1]', bg: 'bg-[#f0f9ff]', border: 'border-[#BAE6FD]' },

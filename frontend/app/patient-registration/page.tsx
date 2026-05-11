@@ -4,19 +4,19 @@ import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (matches lifeandlimbs.org palette) ────────────────────────────────
 const C = {
-  dark:         '#01395f',
-  blue:         '#0369a1',
-  mid:          '#0ea5e9',
-  light:        '#f0f9ff',
-  amber:        '#ef9f27',
-  border:       'rgba(3,105,161,0.15)',
-  borderStrong: 'rgba(3,105,161,0.30)',
-  surface:      '#f4f7fa',
-  text:         '#0d1a26',
-  textSub:      '#4a6070',
-  textMuted:    '#8aa0af',
+  dark:         '#0c4a6e',  // sky-900
+  blue:         '#0369a1',  // sky-700 — primary
+  mid:          '#0ea5e9',  // sky-500
+  light:        '#f0f9ff',  // sky-50
+  amber:        '#eab308',  // yellow-500 — website secondary
+  border:       '#e2e8f0',  // slate-200
+  borderStrong: '#cbd5e1',  // slate-300
+  surface:      '#f8fafc',  // slate-50
+  text:         '#1e293b',  // slate-800
+  textSub:      '#64748b',  // slate-500
+  textMuted:    '#94a3b8',  // slate-400
 };
 
 // ─── Shared styles ─────────────────────────────────────────────────────────────
@@ -25,7 +25,7 @@ const inp: CSSProperties = {
   border: `1.5px solid ${C.border}`, borderRadius: 12,
   fontSize: 16, color: C.text, background: C.surface,
   outline: 'none', boxSizing: 'border-box',
-  fontFamily: "var(--font-dm,'DM Sans',sans-serif)", transition: 'border-color 0.2s',
+  fontFamily: "'Inter', system-ui, sans-serif", transition: 'border-color 0.2s',
 };
 const sel: CSSProperties = { ...inp, appearance: 'auto' };
 const txa: CSSProperties = {
@@ -33,7 +33,7 @@ const txa: CSSProperties = {
   minHeight: 120, resize: 'vertical', lineHeight: 1.7,
 };
 const subHead: CSSProperties = {
-  fontFamily: "var(--font-syne,'Syne',sans-serif)",
+  fontFamily: "'Inter', system-ui, sans-serif",
   fontSize: 13, fontWeight: 700, textTransform: 'uppercase',
   letterSpacing: '0.09em', color: C.mid, marginBottom: 16,
 };
@@ -83,7 +83,7 @@ function Combobox({ options, value, onChange, placeholder }: {
               style={{
                 padding: '11px 18px', cursor: 'pointer', fontSize: 15, color: C.text,
                 background: value === opt ? C.light : 'white',
-                fontFamily: "var(--font-dm,'DM Sans',sans-serif)",
+                fontFamily: "'Inter', system-ui, sans-serif",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = C.light; }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = value === opt ? C.light : 'white'; }}
@@ -689,7 +689,7 @@ function PatientForm() {
             <F label="Have you used a prosthetic leg before?" sub="നിങ്ങൾ മുമ്പ് കൃത്രിമ കാൽ ഉപയോഗിച്ചിട്ടുണ്ടോ?" err={dErr.usedProsthetic}>
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                 {['yes', 'no'].map(val => (
-                  <label key={val} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 40, cursor: 'pointer', border: `1.5px solid ${d.usedProsthetic === val ? C.dark : (dErr.usedProsthetic ? '#EF4444' : C.borderStrong)}`, background: d.usedProsthetic === val ? C.dark : 'white', color: d.usedProsthetic === val ? 'white' : C.textSub, fontSize: 13, fontWeight: 500, transition: 'all 0.2s', fontFamily: "var(--font-syne,'Syne',sans-serif)" }}>
+                  <label key={val} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 40, cursor: 'pointer', border: `1.5px solid ${d.usedProsthetic === val ? C.dark : (dErr.usedProsthetic ? '#EF4444' : C.borderStrong)}`, background: d.usedProsthetic === val ? C.dark : 'white', color: d.usedProsthetic === val ? 'white' : C.textSub, fontSize: 13, fontWeight: 500, transition: 'all 0.2s', fontFamily: "'Inter', system-ui, sans-serif" }}>
                     <input type="radio" name="usedProsthetic" value={val} checked={d.usedProsthetic === val} onChange={() => sd('usedProsthetic', val)} style={{ display: 'none' }} />
                     {val === 'yes' ? '✓ Yes' : '✗ No'}
                   </label>
@@ -736,7 +736,7 @@ function PatientForm() {
                     ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20,6 9,17 4,12"/></svg>
                     : icon}
                 </div>
-                <span style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 13, fontWeight: 700, color: hasData ? C.dark : C.textMuted, flex: 1 }}>{title}</span>
+                <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: hasData ? C.dark : C.textMuted, flex: 1 }}>{title}</span>
                 <button onClick={() => goTo(step)} style={{ fontSize: 12, color: C.blue, background: 'none', border: `1px solid ${C.borderStrong}`, borderRadius: 20, cursor: 'pointer', padding: '3px 12px', fontWeight: 500 }}>Edit</button>
               </div>
               {/* Data rows — only shown if section has data */}
@@ -828,7 +828,7 @@ function PatientForm() {
               </div>
             )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={handleSubmit} disabled={loading} style={{ height: 54, background: C.amber, color: C.dark, border: 'none', borderRadius: 40, fontSize: 16, fontWeight: 700, cursor: 'pointer', padding: '0 40px', fontFamily: "var(--font-syne,'Syne',sans-serif)", opacity: loading ? 0.7 : 1, width: '100%', maxWidth: 340 }}>
+              <button onClick={handleSubmit} disabled={loading} style={{ height: 54, background: C.amber, color: C.dark, border: 'none', borderRadius: 40, fontSize: 16, fontWeight: 700, cursor: 'pointer', padding: '0 40px', fontFamily: "'Inter', system-ui, sans-serif", opacity: loading ? 0.7 : 1, width: '100%', maxWidth: 340 }}>
                 {loading ? 'Submitting...' : 'Submit Registration →'}
               </button>
             </div>
@@ -848,17 +848,17 @@ function PatientForm() {
   const isFirst  = sec === 0;
 
   return (
-    <div style={{ background: C.surface, minHeight: '100vh', fontFamily: "var(--font-dm,'DM Sans',sans-serif)" }}>
+    <div style={{ background: C.surface, minHeight: '100vh', fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ── Header ── */}
-      <div style={{ background: C.dark, padding: '32px 0 0', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)', padding: '32px 0 0', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -60, right: -60, width: 260, height: 260, borderRadius: '50%', border: '44px solid rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -24, left: 200, width: 130, height: 130, borderRadius: '50%', border: '22px solid rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
         <div className="reg-header-pad" style={{ maxWidth: 1140, margin: '0 auto' }}>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Life and Limb – Registration</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <div>
-            <div className="reg-title" style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 5 }}>Patient Registration</div>
+            <div className="reg-title" style={{ fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 5 }}>Patient Registration</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
               രോഗി രജിസ്ട്രേഷൻ — Section {sec + 1} of {SECTIONS.length}
             </div>
@@ -871,7 +871,7 @@ function PatientForm() {
             {SECTIONS.map((s, i) => (
               <div key={s.label} style={{ display: 'contents' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: i <= sec ? 'pointer' : 'default' }} onClick={() => { if (i <= sec) goTo(i); }}>
-                  <div className="reg-step-circle" style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 13, fontWeight: 700, flexShrink: 0, background: i === sec ? C.amber : i < sec ? C.mid : 'rgba(255,255,255,0.1)', color: i === sec ? C.dark : 'white', transition: 'all 0.3s' }}>
+                  <div className="reg-step-circle" style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, fontWeight: 700, flexShrink: 0, background: i === sec ? C.amber : i < sec ? C.mid : 'rgba(255,255,255,0.1)', color: i === sec ? C.dark : 'white', transition: 'all 0.3s' }}>
                     {i < sec ? '✓' : i + 1}
                   </div>
                   <span className="reg-step-label" style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap', color: i === sec ? '#fff' : i < sec ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}>{s.label}</span>
@@ -891,7 +891,7 @@ function PatientForm() {
           <div className="reg-section-bar" style={{ borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: C.light, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.blue, flexShrink: 0 }}>{SEC_ICONS[sec]}</div>
             <div>
-              <div style={{ fontFamily: "var(--font-syne,'Syne',sans-serif)", fontSize: 22, fontWeight: 700, color: C.dark }}>{SECTIONS[sec].title}</div>
+              <div style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 22, fontWeight: 700, color: C.dark }}>{SECTIONS[sec].title}</div>
               <div style={{ fontSize: 14, color: C.textMuted, marginTop: 3 }}>{SECTIONS[sec].sub}</div>
             </div>
           </div>
@@ -904,11 +904,11 @@ function PatientForm() {
               </div>
               <div style={{ display: 'flex', gap: 12 }}>
                 {!isFirst && (
-                  <button onClick={() => goTo(sec - 1)} style={{ height: 50, background: 'transparent', color: C.blue, border: `1.5px solid ${C.borderStrong}`, borderRadius: 40, fontSize: 15, fontWeight: 500, cursor: 'pointer', padding: '0 28px', fontFamily: "var(--font-dm,'DM Sans',sans-serif)" }}>
+                  <button onClick={() => goTo(sec - 1)} style={{ height: 50, background: 'transparent', color: C.blue, border: `1.5px solid ${C.borderStrong}`, borderRadius: 40, fontSize: 15, fontWeight: 500, cursor: 'pointer', padding: '0 28px', fontFamily: "'Inter', system-ui, sans-serif" }}>
                     ← Back
                   </button>
                 )}
-                <button onClick={handleNext} style={{ height: 52, background: C.dark, color: 'white', border: 'none', borderRadius: 40, fontSize: 15, fontWeight: 700, cursor: 'pointer', padding: '0 36px', fontFamily: "var(--font-syne,'Syne',sans-serif)" }}>
+                <button onClick={handleNext} style={{ height: 52, background: C.dark, color: 'white', border: 'none', borderRadius: 40, fontSize: 15, fontWeight: 700, cursor: 'pointer', padding: '0 36px', fontFamily: "'Inter', system-ui, sans-serif" }}>
                   {sec === SECTIONS.length - 2 ? 'Review →' : 'Next →'}
                 </button>
               </div>

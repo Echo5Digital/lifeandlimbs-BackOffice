@@ -32,6 +32,19 @@ const docLabels: { key: keyof Patient['documents']; label: string }[] = [
   { key: 'aadhaarCard',  label: 'Aadhaar Card' },
 ];
 
+// --- SVG icons ---
+const Icons = {
+  user:      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
+  mapPin:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>,
+  users:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="8" r="2.5"/><path d="M21 20c0-2.8-2-5-4.5-5.5"/></svg>,
+  briefcase: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="12"/><path d="M2 12h20"/></svg>,
+  share:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+  activity:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>,
+  prosthetic:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v5l3 3"/><path d="M9 12H6a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2"/><path d="M15 17h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3"/><line x1="10" y1="18" x2="10" y2="22"/><line x1="14" y1="18" x2="14" y2="22"/></svg>,
+  paperclip: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
+  clock:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>,
+};
+
 // --- Detail section component ---
 function DetailSection({
   title,
@@ -40,7 +53,7 @@ function DetailSection({
   defaultOpen = false,
 }: {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   rows: [string, string | number | boolean | undefined | null][];
   defaultOpen?: boolean;
 }) {
@@ -54,7 +67,7 @@ function DetailSection({
         className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors min-h-0"
       >
         <div className="flex items-center gap-2">
-          <span className="text-base">{icon}</span>
+          <span className="text-[#6B7280]">{icon}</span>
           <span className="text-sm font-semibold text-[#374151]">{title}</span>
           {filled && (
             <span className="inline-flex items-center justify-center w-4 h-4 bg-[#0369a1] text-white rounded-full text-[9px] font-bold">✓</span>
@@ -175,7 +188,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Basic patient info */}
             <DetailSection
               title="Basic Information"
-              icon="👤"
+              icon={Icons.user}
               defaultOpen={true}
               rows={[
                 ['Full Name', patient.fullName],
@@ -193,7 +206,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Address */}
             <DetailSection
               title="Address"
-              icon="🏠"
+              icon={Icons.mapPin}
               rows={[
                 ['House / Street', patient.addressHouse || patient.address],
                 ['Post Office', patient.addressPO],
@@ -207,7 +220,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Family */}
             <DetailSection
               title="Family Details"
-              icon="👨‍👩‍👧"
+              icon={Icons.users}
               rows={[
                 ["Father's Name", patient.fatherName],
                 ["Mother's Name", patient.motherName],
@@ -223,7 +236,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Occupation & Financial */}
             <DetailSection
               title="Occupation & Financial"
-              icon="💼"
+              icon={Icons.briefcase}
               rows={[
                 ['Occupation', patient.occupation],
                 ['Monthly Household Income', patient.householdIncomeMonthly],
@@ -238,7 +251,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Referral */}
             <DetailSection
               title="Referral"
-              icon="📣"
+              icon={Icons.share}
               rows={[
                 ['How Did You Know', patient.howDidYouKnow],
                 ['Referred By', patient.referredBy],
@@ -248,7 +261,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Limb Loss / Medical */}
             <DetailSection
               title="Limb Loss & Medical History"
-              icon="🏥"
+              icon={Icons.activity}
               rows={[
                 ['Date Lost Limb', patient.dateLostLimb],
                 ['How Lost Leg', patient.howLostLeg],
@@ -269,7 +282,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Prosthetic */}
             <DetailSection
               title="Prosthetic History"
-              icon="🦿"
+              icon={Icons.prosthetic}
               rows={[
                 ['Used Prosthetic Before', patient.usedProsthetic],
                 ['Years Used', patient.prostheticYears],
@@ -282,7 +295,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {/* Documents */}
             <div>
               <div className="text-sm font-semibold text-[#374151] mb-2 flex items-center gap-2">
-                <span>📎</span> Documents
+                <span className="text-[#6B7280]">{Icons.paperclip}</span> Documents
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {docLabels.map(({ key, label }) => {
@@ -310,7 +323,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
             {patient.statusHistory && patient.statusHistory.length > 0 && (
               <div className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
                 <div className="px-3 py-2.5 bg-gray-50 text-sm font-semibold text-[#374151] flex items-center gap-2">
-                  <span>🕒</span> Status History
+                  <span className="text-[#6B7280]">{Icons.clock}</span> Status History
                 </div>
                 <div className="divide-y divide-[#E5E7EB]">
                   {[...patient.statusHistory].reverse().map((h, i) => {
