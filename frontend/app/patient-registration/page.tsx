@@ -252,8 +252,14 @@ function PatientForm() {
       if (!d.state?.trim())        e.state        = 'State is required · സംസ്ഥാനം നൽകണം';
       if (!d.homePhone?.trim() && !p.phone.trim()) e.homePhone = 'At least one phone number required · ഫോൺ നൽകണം';
     }
-    // Section 3: Family — height and weight required
+    // Section 3: Family — height and weight required; parent fields required if age < 20
     if (s === 3) {
+      if (Number(p.age) < 20) {
+        if (!d.fatherName?.trim())  e.fatherName  = 'Father\'s name is required · പിതാവിന്റെ പേര് നൽകണം';
+        if (!d.motherName?.trim())  e.motherName  = 'Mother\'s name is required · മാതാവിന്റെ പേര് നൽകണം';
+        if (!d.parentsPhone?.trim()) e.parentsPhone = 'Parents\' phone is required · ഫോൺ നൽകണം';
+        else if (!/^\d{10}$/.test(d.parentsPhone.replace(/\s/g, ''))) e.parentsPhone = 'Enter 10-digit number · 10 അക്ക നമ്പർ നൽകണം';
+      }
       if (!d.height?.trim()) e.height = 'Height is required · ഉയരം നൽകണം';
       if (!d.weight?.trim()) e.weight = 'Weight is required · ഭാരം നൽകണം';
     }
@@ -281,8 +287,14 @@ function PatientForm() {
     }
     // Section 7: Prosthetic
     if (s === 7) {
-      if (!d.usedProsthetic)               e.usedProsthetic    = 'Please select Yes or No · തിരഞ്ഞെടുക്കുക';
-      if (!d.whyNewProsthetic?.trim())     e.whyNewProsthetic  = 'Please describe why you need a new prosthetic · കാരണം നൽകണം';
+      if (!d.usedProsthetic) e.usedProsthetic = 'Please select Yes or No · തിരഞ്ഞെടുക്കുക';
+      if (d.usedProsthetic === 'yes') {
+        if (!d.prostheticYears?.trim())  e.prostheticYears  = 'Please enter years used · വർഷം നൽകണം';
+        if (!d.prostheticSource?.trim()) e.prostheticSource = 'Please enter where you got it from · എവിടെ നിന്ന് എന്ന് നൽകണം';
+      }
+      if (d.usedProsthetic) {
+        if (!d.whyNewProsthetic?.trim()) e.whyNewProsthetic = 'Please describe why you need a new prosthetic · കാരണം നൽകണം';
+      }
     }
     if (Object.keys(e).length > 0) { setDErr(x => ({ ...x, ...e })); return false; }
     return true;
@@ -523,9 +535,9 @@ function PatientForm() {
             <>
               <div style={subHead}>Parent / Guardian</div>
               <div className="reg-grid-3" style={{ marginBottom: 4 }}>
-                <F label="Father's Name" sub="പിതാവ്"><input style={inp} placeholder="Father's full name" value={d.fatherName || ''} onChange={e => sd('fatherName', e.target.value)} /></F>
-                <F label="Mother's Name" sub="മാതാവ്"><input style={inp} placeholder="Mother's full name" value={d.motherName || ''} onChange={e => sd('motherName', e.target.value)} /></F>
-                <F label="Parents' Phone" sub="ഫോൺ"><input style={inp} type="tel" placeholder="+91 XXXXX XXXXX" value={d.parentsPhone || ''} onChange={e => sd('parentsPhone', e.target.value)} /></F>
+                <F label="Father's Name" sub="പിതാവ്" err={dErr.fatherName}><input style={{ ...inp, ...(dErr.fatherName ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Father's full name" value={d.fatherName || ''} onChange={e => sd('fatherName', e.target.value)} /></F>
+                <F label="Mother's Name" sub="മാതാവ്" err={dErr.motherName}><input style={{ ...inp, ...(dErr.motherName ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Mother's full name" value={d.motherName || ''} onChange={e => sd('motherName', e.target.value)} /></F>
+                <F label="Parents' Phone" sub="ഫോൺ" err={dErr.parentsPhone}><input style={{ ...inp, ...(dErr.parentsPhone ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="tel" placeholder="+91 XXXXX XXXXX" value={d.parentsPhone || ''} onChange={e => sd('parentsPhone', e.target.value)} /></F>
               </div>
               <div style={divider} />
             </>
@@ -688,8 +700,8 @@ function PatientForm() {
           {d.usedProsthetic === 'yes' && (
             <>
               <div className="reg-grid-2" style={{ marginBottom: 16 }}>
-                <F label="Years using prosthetic" sub="എത്ര വർഷം"><input style={inp} type="number" placeholder="Years" min="0" value={d.prostheticYears || ''} onChange={e => sd('prostheticYears', e.target.value)} /></F>
-                <F label="Where did you get it from?" sub="എവിടെ നിന്ന്"><input style={inp} placeholder="Source / organization" value={d.prostheticSource || ''} onChange={e => sd('prostheticSource', e.target.value)} /></F>
+                <F label="Years using prosthetic" sub="എത്ര വർഷം" err={dErr.prostheticYears}><input style={{ ...inp, ...(dErr.prostheticYears ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="number" placeholder="Years" min="0" value={d.prostheticYears || ''} onChange={e => sd('prostheticYears', e.target.value)} /></F>
+                <F label="Where did you get it from?" sub="എവിടെ നിന്ന്" err={dErr.prostheticSource}><input style={{ ...inp, ...(dErr.prostheticSource ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Source / organization" value={d.prostheticSource || ''} onChange={e => sd('prostheticSource', e.target.value)} /></F>
                 <F label="Manufacturer / Brand" sub="നിർമ്മാണ കമ്പനി"><input style={inp} placeholder="Brand name" value={d.prostheticManufacturer || ''} onChange={e => sd('prostheticManufacturer', e.target.value)} /></F>
               </div>
               <F label="Why do you need a new prosthetic?" sub="പുതിയ കൃത്രിമ കാൽ വേണ്ടതിന്റെ കാരണം" err={dErr.whyNewProsthetic}>
