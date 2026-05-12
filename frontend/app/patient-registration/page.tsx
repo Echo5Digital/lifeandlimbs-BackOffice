@@ -212,7 +212,7 @@ function PatientForm() {
   const [docErr, setDocErr] = useState('');
 
   // Detail fields
-  const [d, setD] = useState<Record<string, string>>({ state: 'Kerala', country: 'India' });
+  const [d, setD] = useState<Record<string, string>>({ country: 'India' });
   const [dErr, setDErr] = useState<Record<string, string>>({});
   const sd = (k: string, v: string) => { setD(x => ({ ...x, [k]: v })); if (dErr[k]) setDErr(e => ({ ...e, [k]: '' })); };
 
