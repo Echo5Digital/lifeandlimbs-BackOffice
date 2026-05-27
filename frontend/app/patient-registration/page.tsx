@@ -108,6 +108,80 @@ function F({ label, sub, err, children }: { label: string; sub?: string; err?: s
   );
 }
 
+// ─── Malayalam Transliteration Textarea ───────────────────────────────────────
+// Akshaya operators type English phonetically (e.g. "njan veedu") → press Space → converts to Malayalam
+function MlTextarea({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  const [mlMode, setMlMode]         = useState(false);
+  const [converting, setConverting] = useState(false);
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!mlMode || (e.key !== ' ' && e.key !== 'Enter')) return;
+    const el = ref.current;
+    if (!el) return;
+    const pos      = el.selectionStart ?? value.length;
+    const before   = value.slice(0, pos);
+    const lastWord = before.split(/[\s\n]+/).pop() || '';
+    if (!lastWord || /[\u0D00-\u0D7F]/.test(lastWord)) return;
+
+    e.preventDefault();
+    setConverting(true);
+    try {
+      const res  = await fetch(`${API_URL}/api/transliterate?q=${encodeURIComponent(lastWord)}`);
+      const data = await res.json();
+      const ml   = data.result || lastWord;
+      const sep  = e.key === 'Enter' ? '\n' : ' ';
+      const newVal = value.slice(0, pos - lastWord.length) + ml + sep + value.slice(pos);
+      onChange(newVal);
+      setTimeout(() => {
+        if (!el) return;
+        const newPos = pos - lastWord.length + ml.length + 1;
+        el.selectionStart = el.selectionEnd = newPos;
+      }, 0);
+    } catch {
+      onChange(value.slice(0, pos) + (e.key === 'Enter' ? '\n' : ' ') + value.slice(pos));
+    } finally {
+      setConverting(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setMlMode(m => !m)}
+        title={mlMode ? 'Switch to English' : 'Click to type in Malayalam'}
+        style={{
+          position: 'absolute', top: 8, right: 8, zIndex: 10,
+          padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          border: `1.5px solid ${mlMode ? C.blue : C.border}`,
+          background: mlMode ? C.blue : C.surface,
+          color: mlMode ? 'white' : C.textMuted,
+          transition: 'all 0.2s',
+        }}
+      >
+        {converting ? '...' : mlMode ? 'English' : 'മലയാളം'}
+      </button>
+      <textarea
+        ref={ref}
+        style={{ ...txa, paddingRight: 64 } as CSSProperties}
+        lang={mlMode ? 'ml' : 'en'}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+      {mlMode && (
+        <p style={{ fontSize: 11, color: C.textMuted, marginTop: 5, lineHeight: 1.6 }} lang="ml">
+          ഇംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്ത് <strong>Space</strong> അമർത്തിയാൽ മലയാളമാകും &nbsp;·&nbsp; ഉദാ: "njan" → "ഞാൻ" · "veedu" → "വീട്"
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Document upload helper ───────────────────────────────────────────────────
 const DOC_ICONS = {
   camera: (
@@ -424,13 +498,16 @@ function PatientForm() {
               </select>
             </F>
           </div>
-          <div className="reg-grid-2" style={{ marginBottom: 4 }}>
+          <div className="reg-grid-3" style={{ marginBottom: 4 }}>
             <F label="Phone Number" sub="ഫോൺ നമ്പർ" err={pErr.phone}>
               <div style={{ display: 'flex', border: `1.5px solid ${pErr.phone ? '#EF4444' : C.border}`, borderRadius: 10, overflow: 'hidden' }}>
                 <span style={{ display: 'flex', alignItems: 'center', padding: '0 18px', background: '#F9FAFB', borderRight: `1px solid ${C.border}`, fontSize: 16, fontWeight: 500, color: C.textSub, flexShrink: 0 }}>+91</span>
                 <input style={{ ...inp, borderLeft: 'none', borderRadius: '0 10px 10px 0', flex: 1, width: 'auto', ...(pErr.phone ? { background: '#FEF2F2' } : {}) }}
                   type="tel" placeholder="XXXXX XXXXX" value={p.phone} onChange={e => sp('phone', e.target.value)} />
               </div>
+            </F>
+            <F label="Home Phone" sub="വീട്ടിലെ ഫോൺ" err={dErr.homePhone}>
+              <input style={{ ...inp, ...(dErr.homePhone ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="tel" placeholder="+91 XXXXX XXXXX" value={d.homePhone || ''} onChange={e => sd('homePhone', e.target.value)} />
             </F>
             <F label="Email" sub="ഇ-മെയിൽ (optional)">
               <input style={inp} type="email" placeholder="email@example.com" value={p.email} onChange={e => sp('email', e.target.value)} />
@@ -516,21 +593,30 @@ function PatientForm() {
           <div className="reg-grid-2" style={{ marginBottom: 16 }}>
             <F label="PO / Post Office" sub="പോസ്റ്റ് ഓഫീസ്" err={dErr.addressPO}><input style={{ ...inp, ...(dErr.addressPO ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Post office" value={d.addressPO || ''} onChange={e => sd('addressPO', e.target.value)} /></F>
             <F label="City / Town" sub="നഗരം" err={dErr.city}><input style={{ ...inp, ...(dErr.city ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="City or town" value={d.city || ''} onChange={e => sd('city', e.target.value)} /></F>
-            <F label="District" sub="ജില്ല" err={dErr.district}>
-              <Combobox
-                placeholder="Select or type district · ജില്ല തിരഞ്ഞെടുക്കുക"
-                value={d.district || ''}
-                onChange={v => sd('district', v)}
-                options={['Alappuzha · ആലപ്പുഴ','Ernakulam · എറണാകുളം','Idukki · ഇടുക്കി','Kannur · കണ്ണൂർ','Kasaragod · കാസർഗോഡ്','Kollam · കൊല്ലം','Kottayam · കോട്ടയം','Kozhikode · കോഴിക്കോട്','Malappuram · മലപ്പുറം','Palakkad · പാലക്കാട്','Pathanamthitta · പത്തനംതിട്ട','Thiruvananthapuram · തിരുവനന്തപുരം','Thrissur · തൃശ്ശൂർ','Wayanad · വയനാട്']}
-              />
-            </F>
             <F label="State" sub="സംസ്ഥാനം" err={dErr.state}>
               <Combobox
                 placeholder="Select or type state · സംസ്ഥാനം തിരഞ്ഞെടുക്കുക"
                 value={d.state || ''}
-                onChange={v => sd('state', v)}
+                onChange={v => { sd('state', v); sd('district', ''); }}
                 options={['Andhra Pradesh · ആന്ധ്രാ പ്രദേശ്','Arunachal Pradesh · അരുണാചൽ പ്രദേശ്','Assam · അസം','Bihar · ബിഹാർ','Chhattisgarh · ഛത്തീസ്ഗഢ്','Goa · ഗോവ','Gujarat · ഗുജറാത്ത്','Haryana · ഹരിയാന','Himachal Pradesh · ഹിമാചൽ പ്രദേശ്','Jharkhand · ജാർഖണ്ഡ്','Karnataka · കർണാടക','Kerala · കേരളം','Madhya Pradesh · മധ്യ പ്രദേശ്','Maharashtra · മഹാരാഷ്ട്ര','Manipur · മണിപ്പൂർ','Meghalaya · മേഘാലയ','Mizoram · മിസോറം','Nagaland · നാഗാലാൻഡ്','Odisha · ഒഡിഷ','Punjab · പഞ്ചാബ്','Rajasthan · രാജസ്ഥാൻ','Sikkim · സിക്കിം','Tamil Nadu · തമിഴ്നാട്','Telangana · തെലങ്കാന','Tripura · ത്രിപുര','Uttar Pradesh · ഉത്തർ പ്രദേശ്','Uttarakhand · ഉത്തരാഖണ്ഡ്','West Bengal · പശ്ചിമ ബംഗാൾ','Andaman and Nicobar Islands · ആൻഡമാൻ നിക്കോബാർ','Chandigarh · ചണ്ഡീഗഢ്','Dadra and Nagar Haveli and Daman and Diu · ദാദ്ര നഗർ ഹവേലി ദമൻ ദിയു','Delhi · ഡൽഹി','Jammu and Kashmir · ജമ്മു കശ്മീർ','Ladakh · ലഡാക്ക്','Lakshadweep · ലക്ഷദ്വീപ്','Puducherry · പുതുച്ചേരി']}
               />
+            </F>
+            <F label="District" sub="ജില്ല" err={dErr.district}>
+              {!d.state || d.state.includes('Kerala') ? (
+                <Combobox
+                  placeholder="Select or type district · ജില്ല തിരഞ്ഞെടുക്കുക"
+                  value={d.district || ''}
+                  onChange={v => sd('district', v)}
+                  options={['Alappuzha · ആലപ്പുഴ','Ernakulam · എറണാകുളം','Idukki · ഇടുക്കി','Kannur · കണ്ണൂർ','Kasaragod · കാസർഗോഡ്','Kollam · കൊല്ലം','Kottayam · കോട്ടയം','Kozhikode · കോഴിക്കോട്','Malappuram · മലപ്പുറം','Palakkad · പാലക്കാട്','Pathanamthitta · പത്തനംതിട്ട','Thiruvananthapuram · തിരുവനന്തപുരം','Thrissur · തൃശ്ശൂർ','Wayanad · വയനാട്']}
+                />
+              ) : (
+                <input
+                  style={{ ...inp, ...(dErr.district ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }}
+                  placeholder="Enter district · ജില്ല നൽകുക"
+                  value={d.district || ''}
+                  onChange={e => sd('district', e.target.value)}
+                />
+              )}
             </F>
             <F label="Zipcode / PIN" sub="പിൻ കോഡ്"><input style={inp} placeholder="6-digit PIN" value={d.zipcode || ''} onChange={e => sd('zipcode', e.target.value)} /></F>
             <F label="Country" sub="രാജ്യം">
@@ -541,12 +627,6 @@ function PatientForm() {
                 options={['India · ഇന്ത്യ','Afghanistan · അഫ്ഗാനിസ്ഥാൻ','Australia · ഓസ്‌ട്രേലിയ','Bangladesh · ബംഗ്ലാദേശ്','Bhutan · ഭൂട്ടാൻ','Canada · കാനഡ','China · ചൈന','France · ഫ്രാൻസ്','Germany · ജർമ്മനി','Indonesia · ഇൻഡോനേഷ്യ','Iran · ഇറാൻ','Iraq · ഇറാഖ്','Italy · ഇറ്റലി','Japan · ജപ്പാൻ','Malaysia · മലേഷ്യ','Maldives · മാലദ്വീപ്','Myanmar · മ്യാൻമാർ','Nepal · നേപ്പാൾ','New Zealand · ന്യൂസിലൻഡ്','Pakistan · പാകിസ്ഥാൻ','Philippines · ഫിലിപ്പൈൻസ്','Qatar · ഖത്തർ','Russia · റഷ്യ','Saudi Arabia · സൗദി അറേബ്യ','Singapore · സിംഗപ്പൂർ','South Korea · ദക്ഷിണ കൊറിയ','Sri Lanka · ശ്രീലങ്ക','Thailand · തായ്‌ലൻഡ്','Turkey · തുർക്കി','United Arab Emirates · യുഎഇ','United Kingdom · യുണൈറ്റഡ് കിംഗ്ഡം','United States · അമേരിക്ക']}
               />
             </F>
-          </div>
-          <div style={divider} />
-          <div className="reg-grid-3">
-            <F label="Home Phone" sub="വീട്ടിലെ ഫോൺ" err={dErr.homePhone}><input style={{ ...inp, ...(dErr.homePhone ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} type="tel" placeholder="+91 XXXXX XXXXX" value={d.homePhone || ''} onChange={e => sd('homePhone', e.target.value)} /></F>
-            <F label="Mobile" sub="മൊബൈൽ (from step 1)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.phone ? `+91 ${p.phone}` : 'Filled from step 1'} /></F>
-            <F label="Email" sub="ഇ-മെയിൽ (optional)"><input style={{ ...inp, background: '#F3F4F6', color: C.textMuted }} disabled placeholder={p.email || 'Filled from step 1'} /></F>
           </div>
         </>
       );
@@ -687,7 +767,7 @@ function PatientForm() {
           </div>
           <div style={{ marginBottom: 16 }}>
             <F label="Describe the loss in detail" sub="കാലുകൾ നഷ്ടമായ വിവരം · Malayalam typing supported" err={dErr.limbLossDetails}>
-              <textarea style={{ ...txa, ...(dErr.limbLossDetails ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Please describe the circumstances and details..." value={d.limbLossDetails || ''} onChange={e => sd('limbLossDetails', e.target.value)} />
+              <MlTextarea placeholder="Please describe the circumstances and details..." value={d.limbLossDetails || ''} onChange={v => sd('limbLossDetails', v)} />
             </F>
           </div>
           <div style={divider} />
@@ -728,7 +808,7 @@ function PatientForm() {
                 <F label="Manufacturer / Brand" sub="നിർമ്മാണ കമ്പനി"><input style={inp} placeholder="Brand name" value={d.prostheticManufacturer || ''} onChange={e => sd('prostheticManufacturer', e.target.value)} /></F>
               </div>
               <F label="Why do you need a new prosthetic?" sub="പുതിയ കൃത്രിമ കാൽ വേണ്ടതിന്റെ കാരണം" err={dErr.whyNewProsthetic}>
-                <textarea style={{ ...txa, ...(dErr.whyNewProsthetic ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={e => sd('whyNewProsthetic', e.target.value)} />
+                <MlTextarea placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={v => sd('whyNewProsthetic', v)} />
               </F>
             </>
           )}

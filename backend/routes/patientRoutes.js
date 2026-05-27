@@ -1,5 +1,6 @@
 const express = require('express');
 const router  = express.Router();
+const https   = require('https');
 const { body, validationResult } = require('express-validator');
 const { upload }                 = require('../config/cloudinary');
 const {
@@ -68,6 +69,23 @@ router.get('/status/:registrationId', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// Public — Malayalam transliteration proxy (avoids browser CORS)
+router.get('/transliterate', (req, res) => {
+  const word = (req.query.q || '').trim();
+  if (!word) return res.json({ result: word });
+  const url = `https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ml-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage`;
+  https.get(url, (apiRes) => {
+    let raw = '';
+    apiRes.on('data', chunk => { raw += chunk; });
+    apiRes.on('end', () => {
+      try {
+        const data = JSON.parse(raw);
+        res.json({ result: data?.[1]?.[0]?.[1]?.[0] || word });
+      } catch { res.json({ result: word }); }
+    });
+  }).on('error', () => res.json({ result: word }));
 });
 
 // Admin protected
