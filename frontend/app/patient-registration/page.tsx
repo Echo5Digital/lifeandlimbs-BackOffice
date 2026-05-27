@@ -175,7 +175,7 @@ function MlTextarea({ value, onChange, placeholder }: {
       />
       {mlMode && (
         <p style={{ fontSize: 11, color: C.textMuted, marginTop: 5, lineHeight: 1.6 }} lang="ml">
-          ഇംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്ത് <strong>Space</strong> അമർത്തിയാൽ മലയാളമാകും &nbsp;·&nbsp; ഉദാ: "njan" → "ഞാൻ" · "veedu" → "വീട്"
+          ഇംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്ത് <strong>Space</strong> അമർത്തിയാൽ മലയാളമാകും &nbsp;·&nbsp; ഉദാ: &quot;njan&quot; → &quot;ഞാൻ&quot; · &quot;veedu&quot; → &quot;വീട്&quot;
         </p>
       )}
     </div>
