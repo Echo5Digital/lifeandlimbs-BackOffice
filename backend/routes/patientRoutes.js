@@ -10,6 +10,7 @@ const {
   updatePatientStatus,
   updatePatientDetails,
   deletePatient,
+  updatePatientDistrict,
 } = require('../controllers/patientController');
 const { protect } = require('../middleware/auth');
 
@@ -91,7 +92,8 @@ router.get('/transliterate', (req, res) => {
 // Admin protected
 router.get('/admin/patients',        protect, getPatients);
 router.get('/admin/patients/:id',    protect, getPatientById);
-router.patch('/admin/patients/:id/status', protect, updatePatientStatus);
-router.delete('/admin/patients/:id',        protect, deletePatient);
+router.patch('/admin/patients/:id/status',   protect, updatePatientStatus);
+router.patch('/admin/patients/:id/district', protect, updatePatientDistrict);
+router.delete('/admin/patients/:id',         protect, deletePatient);
 
 module.exports = router;

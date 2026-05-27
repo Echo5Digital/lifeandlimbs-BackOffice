@@ -230,4 +230,21 @@ const deletePatient = async (req, res) => {
   }
 };
 
-module.exports = { registerPatient, getPatients, getPatientById, updatePatientStatus, updatePatientDetails, deletePatient };
+// PATCH /api/admin/patients/:id/district
+const updatePatientDistrict = async (req, res) => {
+  try {
+    const { district } = req.body;
+    const patient = await Patient.findByIdAndUpdate(
+      req.params.id,
+      { district: district || null },
+      { new: true }
+    );
+    if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
+    res.json({ success: true, data: { district: patient.district } });
+  } catch (err) {
+    console.error('updatePatientDistrict error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update district.' });
+  }
+};
+
+module.exports = { registerPatient, getPatients, getPatientById, updatePatientStatus, updatePatientDetails, deletePatient, updatePatientDistrict };

@@ -134,6 +134,14 @@ function DetailSection({
   );
 }
 
+const KERALA_DISTRICTS = [
+  'Alappuzha · ആലപ്പുഴ','Ernakulam · എറണാകുളം','Idukki · ഇടുക്കി',
+  'Kannur · കണ്ണൂർ','Kasaragod · കാസർഗോഡ്','Kollam · കൊല്ലം',
+  'Kottayam · കോട്ടയം','Kozhikode · കോഴിക്കോട്','Malappuram · മലപ്പുറം',
+  'Palakkad · പാലക്കാട്','Pathanamthitta · പത്തനംതിട്ട',
+  'Thiruvananthapuram · തിരുവനന്തപുരം','Thrissur · തൃശ്ശൂർ','Wayanad · വയനാട്',
+];
+
 export default function PatientModal({ patient, onClose, onStatusUpdated, onDeleted }: Props) {
   const [status, setStatus]         = useState<PatientStatus>(patient.status);
   const [saving, setSaving]         = useState(false);
@@ -141,6 +149,9 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
   const [saveMsg, setSaveMsg]       = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting]     = useState(false);
+  const [district, setDistrict]     = useState<string>(patient.district || '');
+  const [savingDistrict, setSavingDistrict] = useState(false);
+  const [districtMsg, setDistrictMsg]       = useState('');
 
   const { date, time } = formatIST(patient.registeredAt);
 
@@ -176,6 +187,23 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
       setConfirmDelete(false);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleSaveDistrict = async () => {
+    setSavingDistrict(true);
+    setDistrictMsg('');
+    try {
+      await axios.patch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/patients/${patient._id}/district`,
+        { district },
+        { headers: authHeaders(), withCredentials: true }
+      );
+      setDistrictMsg('District saved successfully.');
+    } catch {
+      setDistrictMsg('Failed to save district.');
+    } finally {
+      setSavingDistrict(false);
     }
   };
 
@@ -377,6 +405,35 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
                 </div>
               </div>
             )}
+
+            {/* District edit */}
+            <div className="border-t border-[#E5E7EB] pt-4">
+              <label className="block text-sm font-medium text-[#374151] mb-1">Edit District</label>
+              <div className="flex gap-2">
+                <select
+                  value={district}
+                  onChange={e => setDistrict(e.target.value)}
+                  className="flex-1 h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+                >
+                  <option value="">— Select district —</option>
+                  {KERALA_DISTRICTS.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleSaveDistrict}
+                  disabled={savingDistrict}
+                  className="px-4 h-11 bg-[#0369a1] text-white rounded-[9px] text-sm font-semibold hover:bg-[#025f8f] disabled:opacity-60 transition-colors whitespace-nowrap"
+                >
+                  {savingDistrict ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+              {districtMsg && (
+                <p className={`text-xs mt-1 ${districtMsg.includes('success') ? 'text-[#0369a1]' : 'text-red-600'}`}>
+                  {districtMsg}
+                </p>
+              )}
+            </div>
 
             {/* Status update */}
             <div className="border-t border-[#E5E7EB] pt-4">
