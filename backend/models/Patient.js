@@ -29,7 +29,12 @@ const patientSchema = new mongoose.Schema(
       ],
       default: 'new',
     },
-    // statusHistory temporarily removed
+    statusHistory: [
+      {
+        status:    { type: String },
+        changedAt: { type: Date, default: Date.now },
+      },
+    ],
     registrationId: { type: String, unique: true },
     registeredAt:   { type: Date, default: Date.now },
 
