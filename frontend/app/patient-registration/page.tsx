@@ -148,25 +148,35 @@ function MlTextarea({ value, onChange, placeholder }: {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <button
-        type="button"
-        onClick={() => setMlMode(m => !m)}
-        title={mlMode ? 'Switch to English' : 'Click to type in Malayalam'}
-        style={{
-          position: 'absolute', top: 8, right: 8, zIndex: 10,
-          padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          border: `1.5px solid ${mlMode ? C.blue : C.border}`,
-          background: mlMode ? C.blue : C.surface,
-          color: mlMode ? 'white' : C.textMuted,
-          transition: 'all 0.2s',
-        }}
-      >
-        {converting ? '...' : mlMode ? 'English' : 'മലയാളം'}
-      </button>
+    <div>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '5px 10px',
+        border: `1.5px solid ${mlMode ? C.blue : C.border}`,
+        borderBottom: 'none',
+        borderRadius: '10px 10px 0 0',
+        background: C.surface,
+      }}>
+        <span style={{ fontSize: 11, color: mlMode ? C.blue : C.textMuted, fontWeight: 600 }} lang={mlMode ? 'ml' : 'en'}>
+          {mlMode ? '● മലയാളം' : '● English'}
+        </span>
+        <button
+          type="button"
+          onClick={() => setMlMode(m => !m)}
+          style={{
+            padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            border: `1.5px solid ${mlMode ? C.blue : C.border}`,
+            background: mlMode ? C.blue : 'white',
+            color: mlMode ? 'white' : C.textMuted,
+            transition: 'all 0.2s',
+          }}
+        >
+          {converting ? '...' : mlMode ? 'English' : 'മലയാളം'}
+        </button>
+      </div>
       <textarea
         ref={ref}
-        style={{ ...txa, paddingRight: 64 } as CSSProperties}
+        style={{ ...txa, borderRadius: '0 0 10px 10px', borderColor: mlMode ? C.blue : C.border } as CSSProperties}
         lang={mlMode ? 'ml' : 'en'}
         placeholder={placeholder}
         value={value}
