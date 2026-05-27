@@ -824,7 +824,7 @@ function PatientForm() {
           )}
           {d.usedProsthetic === 'no' && (
             <F label="Why do you need a new prosthetic?" sub="പുതിയ കൃത്രിമ കാൽ വേണ്ടതിന്റെ കാരണം" err={dErr.whyNewProsthetic}>
-              <textarea style={{ ...txa, ...(dErr.whyNewProsthetic ? { borderColor: '#EF4444', background: '#FEF2F2' } : {}) }} placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={e => sd('whyNewProsthetic', e.target.value)} />
+              <MlTextarea placeholder="Describe why you need a new prosthetic leg..." value={d.whyNewProsthetic || ''} onChange={v => sd('whyNewProsthetic', v)} />
             </F>
           )}
         </>
