@@ -186,7 +186,7 @@ const updatePatientDetails = async (req, res) => {
 
     const allowed = [
       'firstName','lastName','dateOfBirth','maritalStatus',
-      'addressHouse','addressPO','city','state','zipcode','country','homePhone',
+      'addressHouse','addressPO','city','district','state','zipcode','country','homePhone',
       'fatherName','motherName','spouseName','spouseOccupation','spousePhone',
       'childrenCount','parentsPhone','yearsMarried',
       'height','weight','occupation','householdIncomeMonthly','householdAssets',
