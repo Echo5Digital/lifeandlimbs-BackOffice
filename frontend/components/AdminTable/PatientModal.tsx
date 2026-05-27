@@ -384,27 +384,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
               </div>
             </div>
 
-            {/* Status history */}
-            {patient.statusHistory && patient.statusHistory.length > 0 && (
-              <div className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
-                <div className="px-3 py-2.5 bg-gray-50 text-sm font-semibold text-[#374151] flex items-center gap-2">
-                  <span className="text-[#6B7280]">{Icons.clock}</span> Status History
-                </div>
-                <div className="divide-y divide-[#E5E7EB]">
-                  {[...patient.statusHistory].reverse().map((h, i) => {
-                    const d = new Date(h.changedAt);
-                    const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-                    const timeStr = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                    return (
-                      <div key={i} className="flex items-center justify-between px-3 py-2 bg-white">
-                        <span className="text-sm text-[#374151] font-medium capitalize">{h.status.replace(/_/g, ' ')}</span>
-                        <span className="text-xs text-[#9CA3AF]">{dateStr} · {timeStr}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {/* Status history — temporarily hidden */}
 
             {/* District edit */}
             <div className="border-t border-[#E5E7EB] pt-4">

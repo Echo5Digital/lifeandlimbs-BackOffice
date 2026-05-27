@@ -143,10 +143,7 @@ const updatePatientStatus = async (req, res) => {
 
     const patient = await Patient.findByIdAndUpdate(
       req.params.id,
-      {
-        status,
-        $push: { statusHistory: { status, changedAt: new Date() } },
-      },
+      { status },
       { new: true }
     );
     if (!patient) {
