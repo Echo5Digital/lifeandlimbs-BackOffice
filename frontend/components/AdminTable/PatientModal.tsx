@@ -165,7 +165,7 @@ export default function PatientModal({ patient, onClose, onStatusUpdated, onDele
         { headers: authHeaders(), withCredentials: true }
       );
       onStatusUpdated(patient._id, status);
-      setSaveMsg('Status updated successfully.');
+      onClose();
     } catch {
       setSaveMsg('Failed to update status.');
     } finally {
