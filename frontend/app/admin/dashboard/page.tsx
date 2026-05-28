@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   const [loading,   setLoading]   = useState(true);
 
   // Filters
-  const [filterStatus,   setFilterStatus]   = useState('new');
+  const [filterStatus,   setFilterStatus]   = useState('all');
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [search,         setSearch]         = useState('');
   const [dateFrom,       setDateFrom]       = useState('');
@@ -133,18 +133,27 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats row — each card also filters the table */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        {/* Stats row — tab style, each card filters the table */}
+        <div className="flex overflow-x-auto bg-white border border-[#E5E7EB] rounded-[14px]">
+          <button
+            onClick={() => { setFilterStatus('all'); setPage(1); }}
+            className={`flex-none px-4 py-3 text-left border-r border-[#E5E7EB] transition-colors hover:bg-gray-50 ${filterStatus === 'all' ? 'border-b-2 border-b-[#0369a1]' : 'border-b-2 border-b-transparent'}`}
+          >
+            <div className="text-xl font-bold text-[#374151]">
+              {Object.values(stats).reduce((a: number, b) => a + (b ?? 0), 0)}
+            </div>
+            <div className="text-xs text-[#9CA3AF] mt-0.5 whitespace-nowrap">All</div>
+          </button>
           {statCards.map((card) => {
             const active = filterStatus === card.key;
             return (
               <button
                 key={card.key}
                 onClick={() => { setFilterStatus(card.key); setPage(1); }}
-                className={`flex-none ${card.bg} border ${active ? 'border-current ring-2 ring-offset-1' : card.border} rounded-[12px] px-3 py-2 text-left transition-all hover:opacity-80 ${card.color}`}
+                className={`flex-none px-4 py-3 text-left border-r border-[#E5E7EB] last:border-r-0 transition-colors hover:bg-gray-50 ${active ? 'border-b-2 border-b-[#0369a1]' : 'border-b-2 border-b-transparent'}`}
               >
-                <div className="text-xl font-bold">{stats[card.key] ?? 0}</div>
-                <div className="text-xs font-medium text-[#374151] mt-0.5 whitespace-nowrap">{card.label}</div>
+                <div className={`text-xl font-bold ${card.color}`}>{stats[card.key] ?? 0}</div>
+                <div className="text-xs text-[#9CA3AF] mt-0.5 whitespace-nowrap">{card.label}</div>
               </button>
             );
           })}
