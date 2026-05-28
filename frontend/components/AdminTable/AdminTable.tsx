@@ -85,14 +85,10 @@ export default function AdminTable({ patients, onView, onDeleted }: Props) {
             return (
               <tr key={p._id} className={`border-b border-[#E5E7EB] hover:bg-gray-50 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}>
                 <td data-label="Patient" className="px-4 py-3">
-                  <div className="font-semibold text-[#374151]">{p.fullName}</div>
-                  <div className="text-xs text-[#9CA3AF]">{p.age}y · {p.gender}</div>
+                  <div className="font-semibold text-[#374151]">{p.fullName} <span className="text-xs text-[#9CA3AF] font-normal">{p.age}y · {p.gender}</span></div>
                 </td>
                 <td data-label="Phone" className="px-4 py-3 text-[#374151]">{p.phone}</td>
-                <td data-label="Registered" className="px-4 py-3">
-                  <div className="text-[#374151]">{date}</div>
-                  <div className="text-xs text-[#9CA3AF]">{time}</div>
-                </td>
+                <td data-label="Registered" className="px-4 py-3 text-[#374151]">{date}</td>
                 <td data-label="Status" className="px-4 py-3">
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${statusBadge[p.status]}`}>
                     {statusLabel[p.status]}
