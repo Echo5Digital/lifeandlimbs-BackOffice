@@ -118,6 +118,12 @@ export default function AdminDashboard() {
             + New
           </button>
           <button
+            onClick={() => router.push('/admin/reports')}
+            className="px-3 py-2 text-sm border border-[#6D28D9] text-[#6D28D9] rounded-[9px] hover:bg-[#F5F3FF] min-h-0 transition-colors"
+          >
+            Reports
+          </button>
+          <button
             onClick={handleLogout}
             className="px-3 py-2 text-sm border border-[#E5E7EB] text-[#374151] rounded-[9px] hover:bg-gray-50 min-h-0 transition-colors"
           >
@@ -127,16 +133,21 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {statCards.map((card) => (
-            <div key={card.key} className={`${card.bg} border ${card.border} rounded-[14px] p-4`}>
-              <div className={`text-2xl font-bold ${card.color}`}>
-                {stats[card.key] ?? 0}
-              </div>
-              <div className="text-sm font-medium text-[#374151] mt-1">{card.label}</div>
-            </div>
-          ))}
+        {/* Stats row — each card also filters the table */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {statCards.map((card) => {
+            const active = filterStatus === card.key;
+            return (
+              <button
+                key={card.key}
+                onClick={() => { setFilterStatus(card.key); setPage(1); }}
+                className={`flex-none ${card.bg} border ${active ? 'border-current ring-2 ring-offset-1' : card.border} rounded-[12px] px-3 py-2 text-left transition-all hover:opacity-80 ${card.color}`}
+              >
+                <div className="text-xl font-bold">{stats[card.key] ?? 0}</div>
+                <div className="text-xs font-medium text-[#374151] mt-0.5 whitespace-nowrap">{card.label}</div>
+              </button>
+            );
+          })}
         </div>
 
         {/* Filters */}
