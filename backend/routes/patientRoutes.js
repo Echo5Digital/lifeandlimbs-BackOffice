@@ -78,11 +78,14 @@ router.get('/status/lookup', async (req, res) => {
   if (!q) return res.status(400).json({ success: false, message: 'Query required' });
   try {
     const Patient = require('../models/Patient');
-    // For phone: match last 10 digits regardless of +91 prefix or spaces
+    // For phone: strip non-digits, build regex allowing optional spaces between digits
+    // handles "+91 97445 05415", "97445 05415", "9744505415" etc.
     const digits = q.replace(/\D/g, '');
     const orConditions = [{ registrationId: q }];
     if (digits.length >= 10) {
-      orConditions.push({ phone: { $regex: digits.slice(-10), $options: 'i' } });
+      const last10 = digits.slice(-10);
+      const phonePattern = last10.split('').join('[\\s]?');
+      orConditions.push({ phone: { $regex: phonePattern } });
     } else {
       orConditions.push({ phone: q });
     }
