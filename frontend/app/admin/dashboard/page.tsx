@@ -137,7 +137,7 @@ export default function AdminDashboard() {
         <div className="flex overflow-x-auto bg-white border border-[#E5E7EB] rounded-[14px]">
           <button
             onClick={() => { setFilterStatus('all'); setPage(1); }}
-            className={`flex-none px-4 py-3 text-left border-r border-[#E5E7EB] transition-colors hover:bg-gray-50 ${filterStatus === 'all' ? 'border-b-2 border-b-[#0369a1]' : 'border-b-2 border-b-transparent'}`}
+            className={`flex-1 min-w-[70px] px-4 py-3 text-left border-r border-[#E5E7EB] transition-colors hover:bg-gray-50 ${filterStatus === 'all' ? 'border-b-2 border-b-[#0369a1]' : 'border-b-2 border-b-transparent'}`}
           >
             <div className="text-xl font-bold text-[#374151]">
               {Object.values(stats).reduce((a: number, b) => a + (b ?? 0), 0)}
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
               <button
                 key={card.key}
                 onClick={() => { setFilterStatus(card.key); setPage(1); }}
-                className={`flex-none px-4 py-3 text-left border-r border-[#E5E7EB] last:border-r-0 transition-colors hover:bg-gray-50 ${active ? 'border-b-2 border-b-[#0369a1]' : 'border-b-2 border-b-transparent'}`}
+                className={`flex-1 min-w-[70px] px-4 py-3 text-left border-r border-[#E5E7EB] last:border-r-0 transition-colors hover:bg-gray-50 ${active ? 'border-b-2 border-b-[#0369a1]' : 'border-b-2 border-b-transparent'}`}
               >
                 <div className={`text-xl font-bold ${card.color}`}>{stats[card.key] ?? 0}</div>
                 <div className="text-xs text-[#9CA3AF] mt-0.5 whitespace-nowrap">{card.label}</div>
@@ -160,11 +160,11 @@ export default function AdminDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="admin-filter-row flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+            className="h-10 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
           >
             <option value="all">All Status</option>
             <option value="new">New Registration</option>
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
           <select
             value={filterDistrict}
             onChange={(e) => { setFilterDistrict(e.target.value); setPage(1); }}
-            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+            className="h-10 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
           >
             <option value="all">All Districts</option>
             {districts.map((d) => (
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
             placeholder="Search name or phone..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1] flex-1 min-w-[180px]"
+            className="h-10 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1] flex-1 min-w-[160px]"
           />
 
           {/* Date range — filters by status change date when a status is selected, else by registration date */}
@@ -203,19 +203,19 @@ export default function AdminDashboard() {
               type="date"
               value={dateFrom}
               onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-              className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+              className="h-10 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
             />
-            <span className="text-xs text-[#9CA3AF]">to</span>
+            <span className="text-xs text-[#9CA3AF]">–</span>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-              className="h-11 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
+              className="h-10 px-3 border border-[#E5E7EB] rounded-[9px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369a1]"
             />
             {(dateFrom || dateTo) && (
               <button
                 onClick={() => { setDateFrom(''); setDateTo(''); setPage(1); }}
-                className="h-11 px-3 text-xs text-[#9CA3AF] hover:text-[#374151] border border-[#E5E7EB] rounded-[9px] bg-white min-h-0"
+                className="h-10 px-3 text-xs text-[#9CA3AF] hover:text-[#374151] border border-[#E5E7EB] rounded-[9px] bg-white min-h-0"
               >
                 Clear
               </button>
