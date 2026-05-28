@@ -72,6 +72,32 @@ router.get('/status/:registrationId', async (req, res) => {
   }
 });
 
+// Public — lookup by phone number or registrationId
+router.get('/status/lookup', async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.status(400).json({ success: false, message: 'Query required' });
+  try {
+    const Patient = require('../models/Patient');
+    const patient = await Patient.findOne(
+      { $or: [{ registrationId: q }, { phone: q }] },
+      'registrationId fullName status registeredAt updatedAt'
+    );
+    if (!patient) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({
+      success: true,
+      data: {
+        registrationId: patient.registrationId,
+        fullName:       patient.fullName,
+        status:         patient.status,
+        registeredAt:   patient.registeredAt,
+        lastUpdatedAt:  patient.updatedAt,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Public — Malayalam transliteration proxy (avoids browser CORS)
 router.get('/transliterate', (req, res) => {
   const word = (req.query.q || '').trim();
