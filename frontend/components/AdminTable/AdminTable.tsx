@@ -73,14 +73,16 @@ export default function AdminTable({ patients, onView, onDeleted }: Props) {
             <th className="text-left px-4 py-3 font-medium text-[#374151]">Phone</th>
             <th className="text-left px-4 py-3 font-medium text-[#374151]">Registered</th>
             <th className="text-left px-4 py-3 font-medium text-[#374151]">Status</th>
-            <th className="text-left px-4 py-3 font-medium text-[#374151]">Docs</th>
+            <th className="text-left px-4 py-3 font-medium text-[#374151]">Status Changed</th>
             <th className="px-4 py-3" />
           </tr>
         </thead>
         <tbody>
           {patients.map((p, i) => {
-            const { date, time } = formatIST(p.registeredAt);
-            const docCount = p.docCount ?? 0;
+            const { date } = formatIST(p.registeredAt);
+            const lastStatusChange = p.statusHistory?.length
+              ? formatIST(p.statusHistory[p.statusHistory.length - 1].changedAt).date
+              : null;
 
             return (
               <tr key={p._id} className={`border-b border-[#E5E7EB] hover:bg-gray-50 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}>
@@ -94,7 +96,7 @@ export default function AdminTable({ patients, onView, onDeleted }: Props) {
                     {statusLabel[p.status]}
                   </span>
                 </td>
-                <td data-label="Docs" className="px-4 py-3 text-[#374151]">{docCount}/3</td>
+                <td data-label="Status Changed" className="px-4 py-3 text-[#374151]">{lastStatusChange ?? '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <button
