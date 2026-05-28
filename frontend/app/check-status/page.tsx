@@ -91,6 +91,8 @@ export default function CheckStatusPage() {
 
         <div style={{ marginTop: 20, padding: '12px', background: '#f0f9ff', borderRadius: 10, fontSize: 12, color: '#0369a1', lineHeight: 1.6, textAlign: 'center' }}>
           For queries, contact Life and Limb · കൂടുതൽ വിവരങ്ങൾക്ക് ഞങ്ങളെ ബന്ധപ്പെടുക
+          <br />
+          <a href="mailto:founder@lifeandlimbs.org" style={{ color: '#0369a1', fontWeight: 600 }}>founder@lifeandlimbs.org</a>
         </div>
       </div>
     </main>
