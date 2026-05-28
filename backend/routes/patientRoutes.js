@@ -78,8 +78,16 @@ router.get('/status/lookup', async (req, res) => {
   if (!q) return res.status(400).json({ success: false, message: 'Query required' });
   try {
     const Patient = require('../models/Patient');
+    // For phone: match last 10 digits regardless of +91 prefix or spaces
+    const digits = q.replace(/\D/g, '');
+    const orConditions = [{ registrationId: q }];
+    if (digits.length >= 10) {
+      orConditions.push({ phone: { $regex: digits.slice(-10), $options: 'i' } });
+    } else {
+      orConditions.push({ phone: q });
+    }
     const patient = await Patient.findOne(
-      { $or: [{ registrationId: q }, { phone: q }] },
+      { $or: orConditions },
       'registrationId fullName status registeredAt updatedAt'
     );
     if (!patient) return res.status(404).json({ success: false, message: 'Not found' });
