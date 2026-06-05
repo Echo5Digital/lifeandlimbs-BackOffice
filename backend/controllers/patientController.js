@@ -49,7 +49,11 @@ const getPatients = async (req, res) => {
     const filter = {};
 
     if (status && status !== 'all')  filter.status   = status;
-    if (district && district !== 'all') filter.district = district;
+    if (district && district !== 'all') {
+      // Match both "Kollam" and "Kollam · കൊല്ലം" — strip Malayalam suffix before comparing
+      const base = district.split('·')[0].trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.district = { $regex: new RegExp('^' + base, 'i') };
+    }
     if (search) {
       filter.$or = [
         { fullName: { $regex: search, $options: 'i' } },
@@ -90,8 +94,17 @@ const getPatients = async (req, res) => {
       docCount: Object.values(p.documents || {}).filter(Boolean).length,
     }));
 
-    // Get distinct districts for dropdown
-    const districts = await Patient.distinct('district');
+    // Get distinct districts for dropdown — deduplicate "Kollam" vs "Kollam · കൊല്ലം"
+    const rawDistricts = await Patient.distinct('district');
+    const baseMap = new Map();
+    for (const d of rawDistricts) {
+      if (!d) continue;
+      const base = d.split('·')[0].trim().toLowerCase();
+      const existing = baseMap.get(base);
+      // Prefer the richer entry (with Malayalam) over English-only
+      if (!existing || d.length > existing.length) baseMap.set(base, d);
+    }
+    const districts = [...baseMap.values()].sort();
 
     // Stats — count every status in one aggregation pass
     const statusAgg = await Patient.aggregate([
