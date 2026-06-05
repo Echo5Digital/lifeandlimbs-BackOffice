@@ -49,6 +49,43 @@ router.post(
 // Public — detailed form submission (registrationId as key, no auth)
 router.patch('/patients/:registrationId/details', updatePatientDetails);
 
+// Public — lookup by phone number or registrationId (must be before /status/:registrationId)
+router.get('/status/lookup', async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.status(400).json({ success: false, message: 'Query required' });
+  try {
+    const Patient = require('../models/Patient');
+    // For phone: strip non-digits, build regex allowing optional spaces between digits
+    // handles "+91 97445 05415", "97445 05415", "9744505415" etc.
+    const digits = q.replace(/\D/g, '');
+    const orConditions = [{ registrationId: q }];
+    if (digits.length >= 10) {
+      const last10 = digits.slice(-10);
+      const phonePattern = last10.split('').join('[\\s]?');
+      orConditions.push({ phone: { $regex: phonePattern } });
+    } else {
+      orConditions.push({ phone: q });
+    }
+    const patient = await Patient.findOne(
+      { $or: orConditions },
+      'registrationId fullName status registeredAt updatedAt'
+    );
+    if (!patient) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({
+      success: true,
+      data: {
+        registrationId: patient.registrationId,
+        fullName:       patient.fullName,
+        status:         patient.status,
+        registeredAt:   patient.registeredAt,
+        lastUpdatedAt:  patient.updatedAt,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Public — patient self-check status by registrationId (no auth, minimal data only)
 router.get('/status/:registrationId', async (req, res) => {
   try {
