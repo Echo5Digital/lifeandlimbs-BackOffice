@@ -109,46 +109,87 @@ function F({ label, sub, err, children }: { label: string; sub?: string; err?: s
 }
 
 // ─── Malayalam Transliteration Textarea ───────────────────────────────────────
-// Akshaya operators type English phonetically (e.g. "njan veedu") → press Space → converts to Malayalam
+// Operators type English phonetically (e.g. "njan veedu") → suggestions appear live → Space / tap to insert
 function MlTextarea({ value, onChange, placeholder }: {
   value: string; onChange: (v: string) => void; placeholder?: string;
 }) {
-  const [mlMode, setMlMode]         = useState(false);
-  const [converting, setConverting] = useState(false);
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const [mlMode, setMlMode]           = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [fetching, setFetching]       = useState(false);
+  const ref      = useRef<HTMLTextAreaElement>(null);
+  const debTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!mlMode || (e.key !== ' ' && e.key !== 'Enter')) return;
+  // Return the English word currently being typed at cursor; empty if it's already Malayalam
+  function wordAtCursor(text: string, pos: number): string {
+    const word = text.slice(0, pos).split(/[\s\n]+/).pop() || '';
+    return /[\u0D00-\u0D7F]/.test(word) ? '' : word;
+  }
+
+  async function fetchSuggestions(word: string) {
+    if (!word) { setSuggestions([]); return; }
+    setFetching(true);
+    try {
+      const res  = await fetch(`${API_URL}/api/transliterate?q=${encodeURIComponent(word)}`);
+      const data = await res.json();
+      setSuggestions(
+        Array.isArray(data.suggestions) && data.suggestions.length
+          ? data.suggestions
+          : data.result ? [data.result] : []
+      );
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setFetching(false);
+    }
+  }
+
+  function applySuggestion(suggestion: string) {
     const el = ref.current;
     if (!el) return;
     const pos      = el.selectionStart ?? value.length;
-    const before   = value.slice(0, pos);
-    const lastWord = before.split(/[\s\n]+/).pop() || '';
-    if (!lastWord || /[\u0D00-\u0D7F]/.test(lastWord)) return;
+    const lastWord = wordAtCursor(value, pos);
+    const newVal   = value.slice(0, pos - lastWord.length) + suggestion + ' ' + value.slice(pos);
+    onChange(newVal);
+    setSuggestions([]);
+    setTimeout(() => {
+      el.focus();
+      const newPos = pos - lastWord.length + suggestion.length + 1;
+      el.selectionStart = el.selectionEnd = newPos;
+    }, 0);
+  }
 
-    e.preventDefault();
-    setConverting(true);
-    try {
-      const res  = await fetch(`${API_URL}/api/transliterate?q=${encodeURIComponent(lastWord)}`);
-      const data = await res.json();
-      const ml   = data.result || lastWord;
-      const sep  = e.key === 'Enter' ? '\n' : ' ';
-      const newVal = value.slice(0, pos - lastWord.length) + ml + sep + value.slice(pos);
-      onChange(newVal);
-      setTimeout(() => {
-        if (!el) return;
-        const newPos = pos - lastWord.length + ml.length + 1;
-        el.selectionStart = el.selectionEnd = newPos;
-      }, 0);
-    } catch {
-      onChange(value.slice(0, pos) + (e.key === 'Enter' ? '\n' : ' ') + value.slice(pos));
-    } finally {
-      setConverting(false);
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    onChange(e.target.value);
+    if (!mlMode) return;
+    const pos  = e.target.selectionStart ?? e.target.value.length;
+    const word = wordAtCursor(e.target.value, pos);
+    if (debTimer.current) clearTimeout(debTimer.current);
+    if (word.length >= 1) {
+      debTimer.current = setTimeout(() => fetchSuggestions(word), 200);
+    } else {
+      setSuggestions([]);
     }
-  };
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (!mlMode) return;
+    if (e.key === 'Escape') { setSuggestions([]); return; }
+    if ((e.key === ' ' || e.key === 'Enter') && suggestions.length > 0) {
+      e.preventDefault();
+      applySuggestion(suggestions[0]);
+    }
+  }
+
+  function toggleMode() {
+    setMlMode(m => !m);
+    setSuggestions([]);
+  }
+
+  const showBar = mlMode && (suggestions.length > 0 || fetching);
 
   return (
     <div>
+      {/* ── Toolbar ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '5px 10px',
@@ -162,7 +203,7 @@ function MlTextarea({ value, onChange, placeholder }: {
         </span>
         <button
           type="button"
-          onClick={() => setMlMode(m => !m)}
+          onClick={toggleMode}
           style={{
             padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
             border: `1.5px solid ${mlMode ? C.blue : C.border}`,
@@ -171,21 +212,61 @@ function MlTextarea({ value, onChange, placeholder }: {
             transition: 'all 0.2s',
           }}
         >
-          {converting ? '...' : mlMode ? 'English' : 'മലയാളം'}
+          {mlMode ? 'English' : 'മലയാളം'}
         </button>
       </div>
+
+      {/* ── Live suggestion bar (mobile keyboard-style) ── */}
+      {showBar && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 10px',
+          border: `1.5px solid ${C.blue}`,
+          borderTop: 'none', borderBottom: 'none',
+          background: C.light,
+          overflowX: 'auto',
+          // Hide scrollbar but keep scrollability
+          msOverflowStyle: 'none',
+        } as CSSProperties}>
+          {fetching && suggestions.length === 0 && (
+            <span style={{ fontSize: 13, color: C.textMuted, fontStyle: 'italic', padding: '3px 4px' }}>...</span>
+          )}
+          {suggestions.map((s, i) => (
+            <button
+              key={s + i}
+              type="button"
+              onMouseDown={e => { e.preventDefault(); applySuggestion(s); }}
+              style={{
+                padding: '4px 16px', borderRadius: 20, cursor: 'pointer', flexShrink: 0,
+                border: `1.5px solid ${i === 0 ? C.blue : C.borderStrong}`,
+                background: i === 0 ? C.blue : 'white',
+                color: i === 0 ? 'white' : C.text,
+                fontSize: 15, fontWeight: i === 0 ? 700 : 400,
+                fontFamily: "'Noto Sans Malayalam', 'Manjari', system-ui, sans-serif",
+                whiteSpace: 'nowrap',
+                transition: 'background 0.15s',
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Textarea ── */}
       <textarea
         ref={ref}
         style={{ ...txa, borderRadius: '0 0 10px 10px', borderColor: mlMode ? C.blue : C.border } as CSSProperties}
         lang={mlMode ? 'ml' : 'en'}
         placeholder={placeholder}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
       />
+
       {mlMode && (
         <p style={{ fontSize: 11, color: C.textMuted, marginTop: 5, lineHeight: 1.6 }} lang="ml">
-          ഇംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്ത് <strong>Space</strong> അമർത്തിയാൽ മലയാളമാകും &nbsp;·&nbsp; ഉദാ: &quot;njan&quot; → &quot;ഞാൻ&quot; · &quot;veedu&quot; → &quot;വീട്&quot;
+          ഇംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്ത് നിർദ്ദേശം തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ <strong>Space</strong> അമർത്തുക &nbsp;·&nbsp; ഉദാ: &quot;njan&quot; → &quot;ഞാൻ&quot; · &quot;veedu&quot; → &quot;വീട്&quot;
         </p>
       )}
     </div>

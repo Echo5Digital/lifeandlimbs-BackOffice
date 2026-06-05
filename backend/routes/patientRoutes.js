@@ -75,18 +75,21 @@ router.get('/status/:registrationId', async (req, res) => {
 // Public — Malayalam transliteration proxy (avoids browser CORS)
 router.get('/transliterate', (req, res) => {
   const word = (req.query.q || '').trim();
-  if (!word) return res.json({ result: word });
-  const url = `https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ml-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage`;
+  if (!word) return res.json({ result: word, suggestions: [] });
+  const url = `https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ml-t-i0-und&num=8&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage`;
   https.get(url, (apiRes) => {
     let raw = '';
     apiRes.on('data', chunk => { raw += chunk; });
     apiRes.on('end', () => {
       try {
         const data = JSON.parse(raw);
-        res.json({ result: data?.[1]?.[0]?.[1]?.[0] || word });
-      } catch { res.json({ result: word }); }
+        const all  = data?.[1]?.[0]?.[1] || [];
+        // Keep only Malayalam-script suggestions (filter out romanised fallbacks)
+        const suggestions = all.filter(s => /[\u0D00-\u0D7F]/.test(s)).slice(0, 5);
+        res.json({ result: suggestions[0] || word, suggestions });
+      } catch { res.json({ result: word, suggestions: [] }); }
     });
-  }).on('error', () => res.json({ result: word }));
+  }).on('error', () => res.json({ result: word, suggestions: [] }));
 });
 
 // Admin protected
